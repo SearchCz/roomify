@@ -6,8 +6,7 @@ These settings establish the default behavior for newly created rooms and enable
 
 Most settings can be adjusted later, so don’t worry about getting everything perfect the first time.
 
-[Screenshot: Configure Roomify]
-
+<img src=plugin-configuration.png>
 ⸻
 
 Room Dormancy Cutoff
