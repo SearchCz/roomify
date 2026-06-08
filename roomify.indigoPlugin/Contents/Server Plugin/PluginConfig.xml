@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PluginConfig>
+
+    <!-- ===================================================== -->
+    <!-- GLOBAL AUTOMATION SETTINGS -->
+    <!-- ===================================================== -->
+    <!-- ROOM DORMANCY  -->
+
+    <Field id="roomDormancyCutoffEnabled"
+        type="checkbox"
+        defaultValue="false">
+        <Label>Enable Room Dormancy Cutoff</Label>
+    </Field>
+
+    <Field id="roomDormancyCutoffDefault"
+           type="menu"
+           defaultValue="360"
+           visibleBindingId="roomDormancyCutoffEnabled"
+           visibleBindingValue="true"
+           alignWithControl="true">
+        <Label>Default Duration</Label>
+
+        <List>
+            <Option value="30">30 Minutes</Option>
+            <Option value="60">60 Minutes</Option>
+            <Option value="90">90 Minutes</Option>
+            <Option value="120">2 Hours</Option>
+            <Option value="180">3 Hours</Option>
+            <Option value="240">4 Hours</Option>
+            <Option value="300">5 Hours</Option>
+            <Option value="360">6 Hours</Option>
+            <Option value="540">9 Hours</Option>
+            <Option value="720">12 Hours</Option>
+            <Option value="1080">18 Hours</Option>
+            <Option value="1440">24 Hours</Option>
+        </List>
+
+        <Description>
+            Time before a dormant room is subject to cutoff
+        </Description>
+    </Field>
+
+    <Field id="label_describe_dormancy" type="label" 
+        alignWithControl="False">
+        <Label>Room dormancy cutoffs enforce a time limit on unchanged lighting. This looks for lights errantly left on by a person or process.</Label>
+    </Field>
+
+    <Field id="sepDormancy" type="separator" >
+    </Field>
+
+    <!-- Automations -->
+
+    <Field id="occupancyAutomationEnabled"
+        type="checkbox"
+        defaultValue="false">
+        <Label>Enable Occupancy-Triggered Automations</Label>
+    </Field>
+
+    <Field id="authorityAutoStandbyRecovery"
+        type="checkbox"
+        defaultValue="true"
+        visibleBindingId="occupancyAutomationEnabled"
+        visibleBindingValue="true">
+        <Label>Automatic Authority Standby and Recovery</Label>
+    </Field>
+
+    <Field id="vacancyGracePeriod"
+        type="textfield"
+        defaultValue="5"
+        visibleBindingId="occupancyAutomationEnabled"
+        visibleBindingValue="true">
+        <Label>Default Occupancy Grace Period (minutes)</Label>
+        <Description>
+            Occupancy is presumed for a time after the last occupancy signal is processed
+        </Description>
+    </Field>
+
+    <Field id="phasedLightingEnabled"
+        type="checkbox"
+        defaultValue="false"
+        visibleBindingId="occupancyAutomationEnabled"
+        visibleBindingValue="true">
+        <Label>Enable 3-Phase Lighting</Label>
+    </Field>
+
+    <Field id="roomAutomationCalmingPeriod"
+           type="menu"
+           defaultValue="5"
+           visibleBindingId="occupancyAutomationEnabled"
+           visibleBindingValue="true"
+           alignWithControl="true">
+        <Label>Automation Calming Allowance</Label>
+
+        <List>
+            <Option value="5">5 Seconds</Option>
+            <Option value="10">10 Seconds</Option>
+            <Option value="15">15 Seconds</Option>
+            <Option value="30">30 Seconds</Option>
+            <Option value="60">1 Minute</Option>
+        </List>
+
+        <Description>
+            Time before a dormant room is subject to cutoff
+        </Description>
+    </Field>
+
+    <Field id="label_describe_ocupancytriggers" type="label" 
+        alignWithControl="False">
+        <Label>Occupancy triggers control room lighting automations in response to presence signals.</Label>
+    </Field>
+
+    <Field id="sep_trigs2" type="separator"/>
+
+    <!-- ===================================================== -->
+    <!-- House Modes -->
+    <!-- ===================================================== -->
+
+    <Field id="houseModesEnabled"
+        type="checkbox"
+        defaultValue="false">
+        <Label>Enable House Modes</Label>
+    </Field>
+
+
+    <Field id="defaultHouseMode"
+           type="menu"
+           defaultValue="DAY"
+           visibleBindingId="houseModesEnabled"
+           visibleBindingValue="true"
+           alignWithControl="true">
+        <Label>Default House Mode @ Startup</Label>
+
+        <List>
+            <Option value="MORNING">Morning</Option>
+            <Option value="DAY">Day</Option>
+            <Option value="AFTERNOON">Afternoon</Option>
+            <Option value="EVENING">Evening</Option>
+            <Option value="NIGHT">Night</Option>
+            <Option value="MEDIA">Media</Option>
+            <Option value="CLEANING">Cleaning</Option>
+            <Option value="SLEEP">Sleep</Option>
+        </List>
+
+        <Description>
+            Brightness to retain even if "off" is requested
+        </Description>
+    </Field>
+
+    <Field id="label_describe_morning" type="label" 
+           visibleBindingId="defaultHouseMode"
+           visibleBindingValue="MORNING"
+        alignWithControl="True">
+        <Label>MORNING mode uses 2/3 specified lighting.</Label>
+    </Field>
+
+    <Field id="label_describe_day" type="label" 
+           visibleBindingId="defaultHouseMode"
+           visibleBindingValue="DAY"
+        alignWithControl="True">
+        <Label>DAY mode uses specified lighting preferences unchanged.</Label>
+    </Field>
+
+    <Field id="label_describe_EVENING" type="label" 
+           visibleBindingId="defaultHouseMode"
+           visibleBindingValue="EVENING"
+        alignWithControl="True">
+        <Label>EVENING mode uses 2/3 specified lighting.</Label>
+    </Field>
+
+    <Field id="label_describe_night" type="label" 
+           visibleBindingId="defaultHouseMode"
+           visibleBindingValue="NIGHT"
+        alignWithControl="True">
+        <Label>NIGHT mode uses 1/3 specified lighting.</Label>
+    </Field>
+
+
+    <Field id="label_describe_bedtime" type="label" 
+           visibleBindingId="defaultHouseMode"
+           visibleBindingValue="BEDTIME"
+        alignWithControl="True">
+        <Label>BEDTIME mode uses 1/5 specified lighting. Guardrail Minimums can sustain light.</Label>
+    </Field>
+
+    <Field id="label_describe_sleep" type="label" 
+           visibleBindingId="defaultHouseMode"
+           visibleBindingValue="SLEEP"
+        alignWithControl="True">
+        <Label>SLEEP mode uses 1/10 specified lighting - ZERO in Bedrooms.</Label>
+    </Field>
+
+
+
+    <Field id="label_describe_hosemodes" type="label" 
+        alignWithControl="False">
+        <Label>House modes can diminish or amlify lighting choices to meet changing expectation.</Label>
+    </Field>
+
+     <Field id="sepHouseModes" type="separator" >
+    </Field>
+
+
+    <!-- ===================================================== -->
+    <!-- Observer -->
+    <!-- ===================================================== -->
+    
+    <Field id="createObserver"
+        type="checkbox"
+        defaultValue="false">
+        <Label>Create Observer Device in Indigo Device List</Label>
+    </Field>
+
+    <Field id="observerName"
+        type="textfield"
+        visibleBindingId="createObserver"
+        visibleBindingValue="true"
+        defaultValue="Roomify Observer">
+        <Label>Observer Name</Label>
+    </Field>
+
+    <Field id="observerId"
+        type="textfield"
+        visibleBindingId="createObserver"
+        visibleBindingValue="true"
+        hidden="false">
+        <Label>Observer Id</Label>
+    </Field>
+
+    <Field id="label_describe_observer" type="label" 
+        alignWithControl="False">
+        <Label>An observer device exposes Roomify runtime states as read-only values. Choose this option to have the plugin create an Indigo device for this purpose.</Label>
+    </Field>
+
+    <Field id="sepObserver" type="separator" >
+    </Field>
+
+
+
+    <!-- ===================================================== -->
+    <!-- LOGGING -->
+    <!-- ===================================================== -->
+
+
+    <Field id="sep_logging" type="separator"/>
+
+
+    <Field id="loggingEnabled"
+        type="checkbox"
+        defaultValue="false">
+        <Label>Include Selected Logging Options:</Label>
+    </Field>
+
+
+
+    <Field id="verboseLogging"
+           type="checkbox"
+        visibleBindingId="loggingEnabled"
+        visibleBindingValue="true"
+           defaultValue="false">
+        <Label>Verbose Logging Enabled</Label>
+    </Field>
+
+    <Field id="heartbeatLogging"
+           type="checkbox"
+        visibleBindingId="loggingEnabled"
+        visibleBindingValue="true"
+           defaultValue="false">
+        <Label>Heartbeat Logging Enabled</Label>
+    </Field>
+
+    <Field id="deviceEventLogging"
+           type="checkbox"
+        visibleBindingId="loggingEnabled"
+        visibleBindingValue="true"
+           defaultValue="false">
+        <Label>Device Event Logging Enabled</Label>
+    </Field>
+
+    <Field id="automationDecisionLogging"
+           type="checkbox"
+            visibleBindingId="loggingEnabled"
+            visibleBindingValue="true"
+           defaultValue="false">
+        <Label>Automation Decision Logging Enabled</Label>
+    </Field>
+
+    <Field id="authorityDecisionLogging"
+           type="checkbox"
+            visibleBindingId="loggingEnabled"
+            visibleBindingValue="true"
+           defaultValue="false">
+        <Label>Authority Decision Logging Enabled</Label>
+    </Field>
+
+    <Field id="errorLogging"
+           type="checkbox"
+        visibleBindingId="loggingEnabled"
+        visibleBindingValue="true"
+           defaultValue="true">
+        <Label>Error Logging Enabled</Label>
+    </Field>
+
+
+    <Field id="label_describe_logging" type="label" 
+        alignWithControl="False">
+        <Label>Select Roomify logging detail..</Label>
+    </Field>
+
+
+ 
+    <Field id="houseMode"
+           type="textfield"
+           hidden="True"
+           defaultValue="DAY"
+           alignWithControl="true">
+        <Label>Default Duration (minutes)</Label>
+        <Description>
+            Maximum time lights may remain active
+        </Description>
+    </Field>
+
+
+</PluginConfig>

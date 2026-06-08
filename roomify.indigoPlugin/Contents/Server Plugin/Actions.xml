@@ -1,0 +1,254 @@
+<Actions>
+
+
+
+    <Action id="enableRormancyCutoff" uiPath="Dormancy Cutoff Settings">
+        <Name>System Enable: Room Dormancy Cutoff</Name>
+        <CallbackMethod>dormancyCutoffX</CallbackMethod>
+    </Action>
+
+    <Action id="disableDormancyCutoff" uiPath="Dormancy Cutoff Settings">
+        <Name>System Disable: Room Dormancy Cutoff</Name>
+        <CallbackMethod>dormancyCutoffX</CallbackMethod>
+    </Action>
+
+    <Action id="toggleDormancyCutoff" uiPath="Dormancy Cutoff Settings">
+        <Name>System Toggle: Room Dormancy Cutoff</Name>
+        <CallbackMethod>dormancyCutoffX</CallbackMethod>
+    </Action>
+
+
+    <Action id="enableTimeouts"
+            uiPath="Dormancy Cutoff Settings"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room Activate: Dormancy Cutoff</Name>
+        <CallbackMethod>timeoutsX</CallbackMethod>
+    </Action>
+
+    <Action id="disableTimeouts"
+            uiPath="Dormancy Cutoff Settings"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room De-Activate: Dormancy Cutoff</Name>
+        <CallbackMethod>timeoutsX</CallbackMethod>
+    </Action>
+
+    <Action id="toggleTimeouts"
+            uiPath="Dormancy Cutoff Settings"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room Toggle: Dormancy Cutoff</Name>
+        <CallbackMethod>timeoutsX</CallbackMethod>
+    </Action>
+
+
+
+    <Action id="enableOccupancyAutomation" uiPath="Occupancy-Triggered Automation">
+        <Name>System Enable: Occupancy-Triggered Automation</Name>
+        <CallbackMethod>systemAutomationX</CallbackMethod>
+    </Action>
+
+    <Action id="disableOccupancyAutomation" uiPath="Occupancy-Triggered Automation">
+        <Name>System Disable: Occupancy-Triggered Automation</Name>
+        <CallbackMethod>systemAutomationX</CallbackMethod>
+    </Action>
+
+    <Action id="toggleOccupancyAutomation" uiPath="Occupancy-Triggered Automation">
+        <Name>System Toggle: Occupancy-Triggered Automation</Name>
+        <CallbackMethod>systemAutomationX</CallbackMethod>
+    </Action>
+
+
+    <Action id="activateRoomAutomations" 
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room Activate: Occupancy-Triggered Automation</Name>
+        <CallbackMethod>roomAutomationX</CallbackMethod>
+    </Action>
+
+    <Action id="deactivateRoomAutomations"
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room De-Activate: Occupancy-Triggered Automation</Name>
+        <CallbackMethod>roomAutomationX</CallbackMethod>
+    </Action>
+
+    <Action id="toggleRoomAutomations"
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room Toggle: Occupancy-Triggered Automation</Name>
+        <CallbackMethod>roomAutomationX</CallbackMethod>
+    </Action>
+
+
+    <Action id="grantAutomationAuthority" 
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room: Resume Automation Authority</Name>
+        <CallbackMethod>roomAuthorityX</CallbackMethod>
+    </Action>
+
+    <Action id="revokeAutomationAuthority"
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room: Surrender Automation Authority</Name>
+        <CallbackMethod>roomAuthorityX</CallbackMethod>
+    </Action>
+
+    <Action id="toggleAutomationAuthority"
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room: Toggle Automation Authority</Name>
+        <CallbackMethod>roomAuthorityX</CallbackMethod>
+    </Action>
+
+    <Action id="advanceAutomationStatus"
+            uiPath="Occupancy-Triggered Automation"
+            deviceFilter="self.roomifyRoom">
+        <Name>Room: Advance Automation Status</Name>
+        <CallbackMethod>advanceAutomationStatusX</CallbackMethod>
+    </Action>
+
+
+    <Action id="setOccupied"
+            uiPath="Room Occupancy"
+            deviceFilter="self.roomifyRoom">
+        <Name>Set To Occupied</Name>
+        <ConfigUI>
+            <Field id="value" type="checkbox" label="Occupied"/>
+        </ConfigUI>
+        <CallbackMethod>roomOccupancyX</CallbackMethod>
+
+    </Action>
+
+    <Action id="setVacant"
+            uiPath="Room Occupancy"
+            deviceFilter="self.roomifyRoom">
+        <Name>Set To Vacant</Name>
+        <ConfigUI>
+            <Field id="value" type="checkbox" label="Occupied"/>
+        </ConfigUI>
+        <CallbackMethod>roomOccupancyX</CallbackMethod>
+
+    </Action>
+
+    <Action id="setToggle"
+                uiPath="Room Occupancy"
+            deviceFilter="self.roomifyRoom">
+        <Name>Toggle Occupancy Flag</Name>
+        <CallbackMethod>roomOccupancyX</CallbackMethod>
+    </Action>
+
+
+    <Action id="setMorning" uiPath="Set House Mode">
+        <Name>Set House Mode to Morning</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setDay" uiPath="Set House Mode">
+        <Name>Set House Mode to Day</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setEvening" uiPath="Set House Mode">
+        <Name>Set House Mode to Evening</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setNight" uiPath="Set House Mode">
+        <Name>Set House Mode to Night</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setSleep" uiPath="Set House Mode">
+        <Name>Set House Mode to Sleep</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setCleaning" uiPath="Set House Mode">
+        <Name>Set House Mode to Cleaning</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setAway" uiPath="Set House Mode">
+        <Name>Set House Mode to Away</Name>
+        <CallbackMethod>setHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setBEDROOM" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Bedroom</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setBATHROOM" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Bathroom</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setCLOSET" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Closet</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setDININGROOM" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Dining Room</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setGARAGE" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Garage</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setHALLWAY" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Hallway</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setSTAIRWAY" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Stairway</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setKITCHEN" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Kitchen</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setLIVINGROOM" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Living Room</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>  
+
+    <Action id="setMEDIAROOM" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Media Room</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setOFFICE" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Office </Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setPATIO" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Patio</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+    <Action id="setUTILITY" deviceFilter="self.roomifyRoom" uiPath="Set Room Mode">
+        <Name>Set Room Mode to Utility</Name>
+        <CallbackMethod>setRoomModeX</CallbackMethod>
+    </Action>   
+
+
+    <Action id="enableGuardrails" uiPath="System-Level Settings">
+        <Name>Enable Guardrails</Name>
+        <CallbackMethod>enableGuardrails</CallbackMethod>
+    </Action>
+
+    <Action id="disableGuardrails" uiPath="System-Level Settings">
+        <Name>Disable Guardrails</Name>
+        <CallbackMethod>disableGuardrails</CallbackMethod>
+    </Action>
+
+
+
+</Actions>
