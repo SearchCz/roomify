@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="docs/RoomifyImage.png" width="300">
+  <img src="docs/RoomifyImage.png" width="600">
 </p>
-
-<h1 align="center">Roomify</h1>
 
 <p align="center">
   Room-centric automation for Indigo
