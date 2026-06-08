@@ -9,9 +9,6 @@
 </p>
 Roomify
 
-Smart Rooms. Adaptive Lighting.
-
-Roomify introduces room-level intelligence to Indigo by treating rooms as first-class automation entities.
 
 A room is more than a collection of lights, sensors, switches, and conditions. It is a living space with occupancy, activity, authority, context, and behavior. Roomify continuously evaluates the devices assigned to each room and maintains a coherent model of what is happening within that space.
 
