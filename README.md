@@ -1,3 +1,12 @@
+<p align="center">
+  <img src="docs/roomifyimage.png" width="300">
+</p>
+
+<h1 align="center">Roomify</h1>
+
+<p align="center">
+  Room-centric automation for Indigo
+</p>
 Roomify
 
 Smart Rooms. Adaptive Lighting.
