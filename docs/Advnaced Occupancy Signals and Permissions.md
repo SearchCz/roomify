@@ -47,8 +47,8 @@ If you should prefer that Roomify hold on to authority regardless of disruptions
 
 ## Footnote:
 
-These mechanisms all exist so that Roomify can make better decisions about when and whether occupancy signals should initiative actions. The goal is to automate only when Bothe permission to act and signs of occupancy are sufficient.
+These mechanisms all exist so that Roomify can make better decisions about when and whether occupancy signals should initiative actions. The goal is to automate only when Both permission to act and signs of occupancy are sufficient.
 
 ## See Also:
 
-[Advnaced Lighting Options](Advnaced%20Lighting%20Options.md)
+[Advnaced Lighting Options](Advanced%20Lighting%20Options.md)
