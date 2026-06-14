@@ -21,13 +21,13 @@ A better option: execute the lighting in phases, offering the brightest light in
 
 By enabling 3-Phase Lighting in the plugin configuration , you can control how room lighting evolves as confidence in continued occupancy decreases.
 
-![][images/Occuancy Automation Enabled.jpeg]
+![](images/Occuancy%20Automation%20Enabled.jpeg)
 
 In the room configuration, you might consider reducing the duration of initial brightness. Roomify will transition to ints second phase - delayed brightness - only after initial duration has passed with no fresh occupancy signals. The duration you select under “delayed brightness” extend the lighting for additional minutes. Likewise the outro minutes, which begin after thee delayed lighting phase. 
 
 NOTE: any fresh occupancy signals processed during this 3-phase cycle return the room to initial occupancy.
   
-![[RoomConfig-Advanced.png]]
+![](images/RoomConfig-Advanced.png)
   
 
 ## House Modes
@@ -36,7 +36,7 @@ Lets consider for a moment the kitchen. This is a room that is usually brightly 
 
 House modes provide a way to address this need. Once enabled in the plugin, you can use Indigo schedules, triggers, action groups, or manual commands to tell Roomify when lighting should be dimmer or brighter than normal.  
 
-  ![[HouseModes.png]]
+![](images/HouseModes.png)
 
   
 When a House Mode changes, Roomify recalculates the desired lighting for every room. Rooms currently under automation control are immediately adjusted to their new target brightness, while future occupancy events use the same updated calculations.
@@ -70,7 +70,6 @@ This limit applies only to rooms that are meant to be ON, and operates separatel
 ### Upper Limit on Auto Brightness  
 This limiter is used less often, but it allows you to prevent Roomify from ever lighting a room above a specified brightness.
 
-[!TIP]
 ## SPECIAL NOTE
 
 House Modes and Execution Limits are built to work together, to always deliver the right lighting in any given place and situation. There’s one particular case for which these modules are ideally suited, and that’s “sleep” mode. 
