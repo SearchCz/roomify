@@ -21,7 +21,7 @@ A better option: execute the lighting in phases, offering the brightest light in
 
 By enabling 3-Phase Lighting in the plugin configuration , you can control how room lighting evolves as confidence in continued occupancy decreases.
 
-![[Occuancy Automation Enabled.jpeg]]
+![][images/Occuancy Automation Enabled.jpeg]
 
 In the room configuration, you might consider reducing the duration of initial brightness. Roomify will transition to ints second phase - delayed brightness - only after initial duration has passed with no fresh occupancy signals. The duration you select under “delayed brightness” extend the lighting for additional minutes. Likewise the outro minutes, which begin after thee delayed lighting phase. 
 
