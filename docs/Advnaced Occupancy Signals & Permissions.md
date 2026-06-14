@@ -2,8 +2,7 @@
 
 In each Roomify room, there are several advanced options for signalling when occupancy begins, ends and is permitted to invoke lighting. These are all revealed by checking “Show Advanced Settings” in the room configurations. (You may need to expand or scroll the window to see the advanced settings).
 
-![[Office Config - Full Screen.png]]
-
+![](images/Office%20Config%20-%20Full%20Screen.png)
 
 
 The advanced settings allow you to set:
