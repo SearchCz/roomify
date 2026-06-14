@@ -75,10 +75,8 @@ This limiter is used less often, but it allows you to prevent Roomify from ever 
 
 House Modes and Execution Limits are built to work together, to always deliver the right lighting in any given place and situation. There’s one particular case for which these modules are ideally suited, and that’s “sleep” mode. 
 
+When the house is in “sleep” mode, every specified target brightness is multiples by a factor of zero, resulting in zero brightness everywhere. This perfectly safeguards the darkness most prefer in sleeping quarters. By setting the lower limit on auto brightness to zero in bedrooms, we can be sure that Roomify won’t disturb the space with unwanted lights during “sleep mode”. By setting every OTHER room with a lower limit of 20-30% (or whatever you prefer), we ALSO can be assured of getting a little light in the overnight whenever we leave the bedroom.
 
 ## See Also:
 
 [Advnaced Occupancy Signals and Permissions](Advnaced%20Occupancy%20Signals%20and%20Permissions.md)
-
-
-When the house is in “sleep” mode, every specified target brightness is multiples by a factor of zero, resulting in zero brightness everywhere. This perfectly safeguards the darkness most prefer in sleeping quarters. By setting the lower limit on auto brightness to zero in bedrooms, we can be sure that Roomify won’t disturb the space with unwanted lights during “sleep mode”. By setting every OTHER room with a lower limit of 20-30% (or whatever you prefer), we ALSO can be assured of getting a little light in the overnight whenever we leave the bedroom.
