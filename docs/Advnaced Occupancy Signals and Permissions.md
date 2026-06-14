@@ -19,7 +19,7 @@ But sometimes a room offers a signal that can be treated as authoritative, and p
 
 For situations like this, Roomify accommodates a single Vacancy Authority. A fresh OFF signal from such a device tells Roomify to classify the room as unoccupied and adjust the lighting accordingly - if currently permitted to do so.
 
-## About Permission to Automate
+## 3) Permission to Automate
 
 **Roomify automations only act when Roomify considers itself permitted to do so.** 
 
