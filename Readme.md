@@ -4,9 +4,7 @@
   <img src="docs/RoomifyImage.png" width="600">
 </p>
 
-<p align="center">
-  Room-centric automation for Indigo
-</p>
+
 
 Roomify introduces room-level intelligence to Indigo by treating rooms as first-class automation entities.
 
