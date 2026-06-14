@@ -1,6 +1,6 @@
 ## Smart Rooms. Adaptive Lighting.
 
-![[Roomify Banner.jpeg]]
+![](docs/images/roomifyBanner.jpeg)
 
 Roomify introduces room-level intelligence to Indigo by treating rooms as first-class automation entities.
 
@@ -212,11 +212,11 @@ Feedback, suggestions, bug reports, and contributions are welcome.
 
 ## Documentation Set
 
-1. [[Overview]]
-2. [[Getting Started]]
-3. [[Automating Your Rooms]]
-4. [[Room Dormancy Cutoff]]
-5. [[Basic Occupancy Automation]]
-6. [[Advnaced Occupancy Signals & Permissions]]
-7. [[Advanced Lighting Options]]
+1. [Overview](docs/Overview.md)
+2. [Getting Started](docs/Getting%20Started.md)
+3. [Automating Your Rooms](docs/Automating%20Your%20Rooms.md)
+4. [Room Dormancy Cutoff](docs/Room%20Dormancy%20Cutoff.md)
+5. [Basic Occupancy Automation](docs/Basic%20Occupancy%20Automation.md)
+6. [Advnaced Occupancy Signals and Permissions](Advnaced%20Occupancy%20Signals%20and%20Permissions.md)
+7. [Advanced Lighting Options](docs/Advnaced%20Lighting%20Options.md)
 

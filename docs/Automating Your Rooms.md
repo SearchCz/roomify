@@ -47,8 +47,8 @@ The model above is intentionally simple. Roomify also supports advanced controls
 
 If you’re curious about Roomify’s automation capabilities but want to start with something simple, Dormancy Management is a good place to begin. It requires minimal configuration and simply ensures that rooms are not accidentally left on indefinitely.
 
-[[Room Dormancy Cutoff]]
+[Room Dormancy Cutoff](Room%20Dormancy%20Cutoff.md)
 
 See Also
 
-[[Basic Occupancy Automation]]
+[Basic Occupancy Automation](Basic%20Occupancy%20Automation.md)

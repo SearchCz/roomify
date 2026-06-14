@@ -13,11 +13,11 @@ Rooms can be configured to follow this dormancy policy by simply activating the 
 Just check the box and select the maximum on time you prefer for most room.
 
 **Plugins → Roomify → Configure**
-  ![[Room Dormancy Enabled.jpeg]]
+![](images/roomDormancyEnabled.jpeg)
 ## Step 2: Activate in Target Room(s)
 
 Now, for any room you want Roomify to monitor and turn off after your specified maximum time period has elapsed, go in to the room config and make those selections. You can choose to  have a room follow the duration specified in the plugin configuration, or assign a different maximum time to any room you like.
-  ![[Office - Room Dormancy.png]]
+  ![](images/officeRoomDormancy.png)
 
 ## Done
 
@@ -25,4 +25,4 @@ Roomify will begin monitoring the room upon next activation, standing by to turn
 
 ## See Also:
 
-[[Basic Occupancy Automation]]
+[Basic Occupancy Automation](Basic%20Occupancy%20Automation.md)

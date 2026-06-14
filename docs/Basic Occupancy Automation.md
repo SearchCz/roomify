@@ -12,9 +12,9 @@ No sensors? No problem. Because you can ALSO use Indigo Triggers and Action Grou
 
 ## Step 1: Enable in The Plugin
 
-![[Occuancy Automation Enabled.jpeg]]  
+![](images/occupancyAutomationEnabled.jpeg)  
 
-Just check the box that says “Enable Occupancy Triggered Automations”. When you like, you can adjust the remaining automations settings which are covered in detail in the [[Advanced Lighting Options]] and [[Advnaced Occupancy Signals & Permissions]] documentation.
+Just check the box that says “Enable Occupancy Triggered Automations”. When you like, you can adjust the remaining automations settings which are covered in detail in the [Advanced Lighting Options](Advanced%20Lighting%20Options.md) and [Advnaced Occupancy Signals & Permissions](Advanced%20Occupancy%20Signals%20and%20Permissions.md) documentation.
 
 This feature enables Roomify control over room lighting based on occupancy, including terminating lighting whenever a room is determined to be vacant. 
 
@@ -31,7 +31,7 @@ Only then will signs of occupancy initiate lighting.
 
 ## Step 2: Activate Automations in The Room 
 
-  ![[Room Automation Enabled.jpeg]]
+  ![](roomAutomationActive.jpeg)
 
 Now check the box that says “Activate” under “Occupancy-Triggered Automations”. This is how Roomily knows which rooms are to be automated. All thats left to do is:
 
@@ -46,7 +46,7 @@ Once you save the room, automation begins.
 
 ## See Also:
 
-[[Advanced Lighting Options]]
+[Advanced Lighting Options](Advanced%20Lighting%20Options.md)
 
-[[Advnaced Occupancy Signals & Permissions]]
+[Advnaced Occupancy Signals and Permissions](Advnaced%20Occupancy%20Signals%20and%20Permissions.md)
 

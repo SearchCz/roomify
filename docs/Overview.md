@@ -104,4 +104,4 @@ The goal is not to replace the automations you already have. 
 
 The goal is to make rooms first-class participants in your smart home.
 
-[[Getting Started]]
+[Getting Started](Getting%20Started.md)
