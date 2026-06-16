@@ -104,4 +104,8 @@ The goal is not to replace the automations you already have. 
 
 The goal is to make rooms first-class participants in your smart home.
 
+![](images/RoomifyLogo215.png)
+
+## See Also: 
 [Getting Started](Getting%20Started.md)
+

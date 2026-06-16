@@ -62,3 +62,5 @@ The Observer answers the question:
 “What is happening in Roomify?”
 
 By separating room-level state from plugin-level state, Roomify provides visibility into both the individual spaces being automated and the overall system responsible for automating them.
+
+![](images/RoomifyLogo215.png)

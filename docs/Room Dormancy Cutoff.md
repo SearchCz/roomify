@@ -23,6 +23,6 @@ Now, for any room you want Roomify to monitor and turn off after your specified 
 
 Roomify will begin monitoring the room upon next activation, standing by to turn forgotten lights off.
 
+![](images/RoomifyLogo215.png)
 ## See Also:
-
 [Basic Occupancy Automation](Basic%20Occupancy%20Automation.md)

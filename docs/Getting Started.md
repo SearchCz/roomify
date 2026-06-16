@@ -28,7 +28,7 @@ Create a new Indigo device using:
 
 **Devices → New Device → Roomify → Room**
 
-![](images/roomDefinitionBasic.jpeg)
+![](roomDefinitionBasic.jpeg)
 
 ### 2a) Select The Room Type  
 
@@ -53,7 +53,7 @@ For example, a Living Room might include:
 
 Here’s my Office, for example.
 
-  ![](images/office.png)
+  ![](office.png)
 
 Once saved, Roomify immediately begins tracking the room.
 
@@ -86,6 +86,6 @@ At this point Roomify is already useful, by providing:
 
 When getting started with Roomify, especially if you plan to enable the optional features, you may find it beneficial to limit your configuration to just one or two rooms in your smart home until you are comfortable with what the various settings do.
 
-See Also:
-
+![](images/RoomifyLogo215.png)
+### See Also:
 [Automating Your Rooms](Automating%20Your%20Rooms.md)

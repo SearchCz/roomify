@@ -31,7 +31,7 @@ Only then will signs of occupancy initiate lighting.
 
 ## Step 2: Activate Automations in The Room 
 
-  ![](images/roomAutomationActive.jpeg)
+  ![](roomAutomationActive.jpeg)
 
 Now check the box that says “Activate” under “Occupancy-Triggered Automations”. This is how Roomily knows which rooms are to be automated. All thats left to do is:
 
@@ -44,9 +44,8 @@ Now check the box that says “Activate” under “Occupancy-Triggered Automati
 
 Once you save the room, automation begins.
 
+![](images/RoomifyLogo215.png)
 ## See Also:
-
 [Advanced Lighting Options](Advanced%20Lighting%20Options.md)
-
 [Advnaced Occupancy Signals and Permissions](Advnaced%20Occupancy%20Signals%20and%20Permissions.md)
 

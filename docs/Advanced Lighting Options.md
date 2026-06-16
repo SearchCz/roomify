@@ -29,7 +29,6 @@ NOTE: any fresh occupancy signals processed during this 3-phase cycle return the
   
 ![](images/roomConfigAdvanced.png)
   
-
 ## House Modes
 
 Lets consider for a moment the kitchen. This is a room that is usually brightly lit for meal preparation in the day and evening. But that kind of intense brightness, desirable for meal prep, might not be ideal when grabbing a snack at night or a glass of water in the overnight.
@@ -77,6 +76,8 @@ House Modes and Execution Limits are built to work together, to always deliver t
 
 When the house is in “sleep” mode, every specified target brightness is multiples by a factor of zero, resulting in zero brightness everywhere. This perfectly safeguards the darkness most prefer in sleeping quarters. By setting the lower limit on auto brightness to zero in bedrooms, we can be sure that Roomify won’t disturb the space with unwanted lights during “sleep mode”. By setting every OTHER room with a lower limit of 20-30% (or whatever you prefer), we ALSO can be assured of getting a little light in the overnight whenever we leave the bedroom.
 
-## See Also:
+![](images/RoomifyLogo215.png)
 
+## See Also:
 [Advnaced Occupancy Signals and Permissions](Advnaced%20Occupancy%20Signals%20and%20Permissions.md)
+

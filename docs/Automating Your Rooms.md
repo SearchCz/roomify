@@ -49,6 +49,6 @@ If you’re curious about Roomify’s automation capabilities but want to start 
 
 [Room Dormancy Cutoff](Room%20Dormancy%20Cutoff.md)
 
-See Also
-
+![](images/RoomifyLogo215.png)
+### See Also:
 [Basic Occupancy Automation](Basic%20Occupancy%20Automation.md)
