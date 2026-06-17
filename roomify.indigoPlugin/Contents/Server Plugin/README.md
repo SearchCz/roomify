@@ -117,6 +117,11 @@ Examples include:
 
 Room types and house modes work together to produce lighting that feels appropriate for both the space and the moment.
 
+Roomify Observer
+
+An optional device to provide you with visibility to Roomify plugin properties ... hose mode in particular. Availabe for anyone who might find that information useful. Not required by Roomify in any way.
+
+
 ⸻
 
 Typical Use Cases
@@ -152,9 +157,13 @@ Roomify models those realities directly and uses them to guide automation decisi
 
 The goal is simple:
 
-Make automations easier to build by giving Indigo something it has never had before:
+Make automations easier to build by introducing a room-centric automation model in Indigo.
 
-A room.
+Roomify defines a “Room” as a self-contained automation context that encapsulates state, rules, and coordination logic.
+
+It organizes the devices subject to control within a room, the signals that indicate occupancy or vacancy, and the logic that determines how those signals are interpreted over time within that space.
+
+You provide the intent; Roomify handles the interpretation, state management, and coordination.
 
 ⸻
 

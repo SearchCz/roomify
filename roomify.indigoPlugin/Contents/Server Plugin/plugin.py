@@ -628,7 +628,7 @@ class Plugin(indigo.PluginBase):
             self.turnRoomOn(room, targetBrightness)
 
 
-    def directRoom(self, room, onState, targetBrightness):
+    def directRoom(self, room, onState, targetBrightness, delay):
         #self.ignoreNextRoomChange(room, "Roomify-Initiated Change", onState, targetBrightness)
         room.updateStateOnServer("onState", onState)
         room.updateStateOnServer("onOffState", onState)
@@ -642,16 +642,25 @@ class Plugin(indigo.PluginBase):
         #room.updateStateOnServer("auditAttemptsRemaining", 4)
         #room.updateStateOnServer("auditPending", False)
 
-        self.applyTargetStateToDevices(room, onState, targetBrightness)
+        self.applyTargetStateToDevices(room, onState, targetBrightness, 0)
 
     def turnRoomOn(self, room, targetBrightness):
         self.automationLog(f"Turning ON room: {room.name} to brightness {targetBrightness}")
-        self.directRoom(room, True, targetBrightness)
+        self.directRoom(room, True, targetBrightness, 0)
         self.automationLog(f"Setting watchdog cutoff for room '{room.name}'")
         self.setRoomTimeout(room)
         
+    def dormancyCutoff(self, room):
+        self.turnOff(room, 60)
+        nextTime = time.time()+90
+        nextName = "Dormancy Cutoff"
+        self.scheduleRoomEvaluaiton(room, nextTime, nextName, "Heartbeat")
+
 
     def turnRoomOff(self, room):
+        self.turnOff(room, 0)
+
+    def turnOff(self, room, delay):
         self.automationLog(f"Turning OFF room: {room.name}")
 
         #maybe off doesn't really mean off ? 
@@ -660,9 +669,9 @@ class Plugin(indigo.PluginBase):
             autoOffBrightness = int(autoOffBrightness)
         if autoOffBrightness > 0:
             self.automationLog(f"Auto-off brightness of {autoOffBrightness} detected for room {room.name}, dimming instead of turning off")
-            self.turnRoomOn(room, int(autoOffBrightness))
+            self.turnRoomOn(room, int(autoOffBrightness), delay)
         else:
-            self.directRoom(room, False, 0)
+            self.directRoom(room, False, 0, delay)
             room.updateStateOnServer("lightingPhase", None)
             room.updateStateOnServer("watchdogCutoff", None)
             room.updateStateOnServer("watchdogCutoffDisplay", None)
@@ -840,7 +849,7 @@ class Plugin(indigo.PluginBase):
 
     # runs when plugin loads. good for initializing variables, loading prefs, etc. but not for doing anything with devices since they might not be loaded yet (that's deviceStartComm)
     def startup(self):
-
+        #self.logger.info(indigo.dimmer.setBrightness.__doc__)
         self.roomRuntime = {}
         self.buildRoomTypeDefaults()
         self.recentlyControlled = {}
@@ -1971,6 +1980,7 @@ class Plugin(indigo.PluginBase):
         displayTime = datetime.datetime.fromtimestamp(
             expiry).strftime("%I:%M:%S %p")
         
+        room.updateStateOnServer("cutoffCyclesRemaining", None)
         room.updateStateOnServer("watchdogCutoff", expiry)
         room.updateStateOnServer("watchdogCutoffDisplay", displayTime)
 
@@ -2248,9 +2258,9 @@ class Plugin(indigo.PluginBase):
         room_brightness = room.states.get("brightness", 0)
         #self.ignoreNextRoomChange(room, "Roomify-Initiated Change", room_is_on, room_brightness)
         self.automationLog(f"Executing divergence resolution for {room.name}")
-        self.applyTargetStateToDevices(room, room_is_on, room_brightness)
+        self.applyTargetStateToDevices(room, room_is_on, room_brightness, 0)
 
-    def applyTargetStateToDevices(self, room, room_is_on, room_brightness ):
+    def applyTargetStateToDevices(self, room, room_is_on, room_brightness, delay ):
         self.automationLog("Applying target room state to devices...")
 #        self.suppressEvaluationDepth += 1
 
@@ -2302,13 +2312,13 @@ class Plugin(indigo.PluginBase):
                         #self.sleep(0.3)
                         if not self.isOn(dev):
                             indigo.device.turnOn(dev_id) #to confirm on state for devices that dont reliably report brightness changes as on state changes                    
-                            indigo.dimmer.setBrightness(dev_id, int(room_brightness))
+                            indigo.dimmer.setBrightness(dev_id, int(room_brightness), int(delay))
                         else:
-                            indigo.dimmer.setBrightness(dev_id, int(room_brightness))
+                            indigo.dimmer.setBrightness(dev_id, int(room_brightness), delay)
                     else:
                         indigo.device.turnOn(dev_id)
                 else:
-                    indigo.device.turnOff(dev_id)
+                    indigo.device.turnOff(dev_id,delay)
                 continue
 #                self.sleep(0.25)
 
@@ -2489,6 +2499,20 @@ class Plugin(indigo.PluginBase):
         self.evaluateAutomationState(room)
         self.logDecision(room,"Re-authorizing Automations")
 
+    def initiateCutoff(self, room):
+        # get current brightness
+        # get target (off) brightness
+        currentBrightness = room.states.get("brightness")
+        autoOffBrightness = room.states.get("autoOffBrightness")
+        if autoOffBrightness:
+            autoOffBrightness = int(autoOffBrightness)
+        delta = currentBrightness - autoOffBrightness
+        increment = delta / 10
+        room.updateStateOnServer("cutoffCyclesRemaining", 10)
+        room.updateStateOnServer("cutoffCyclesIncrement", increment)
+
+
+
     #heartbeat
     def runConcurrentThread(self):
 
@@ -2514,12 +2538,42 @@ class Plugin(indigo.PluginBase):
                     self.identifyNextRoomObligation(room)
 #dormancy cutoff comes first
 
+
+
                     # TIMEOUT BLOCK
 #                        if room.states.get("timeoutsEnabled", True) and self.roomDormancyCutoffEnabled:
-                    if self.globalRoomDormancyCutoffEnabled and room.states.get("roonDormancyCutoffActive", False):
+
+#                    self.heartbeatLog(f"Heartbeat processing room {room.name} Ena bled={self.globalRoomDormancyCutoffEnabled} ACtive={room.states.get("roomDormancyCutoffActive", False)}")
+
+                    if self.globalRoomDormancyCutoffEnabled and room.states.get("roomDormancyCutoffActive", False):
                     
+                        cuttingOff = room.states.get("cutoffCyclesRemaining")
+
+                        if cuttingOff:
+                            cuttingOff = int(cuttingOff)
+                        else:
+                            cuttingOff = 0
+
+                        if cuttingOff > 0:
+                            cuttingOff -= 1
+                            room.updateStateOnServer("cutoffCyclesRemaining", str(cuttingOff))
+                            currentBrightness = room.states.get("brightness")
+                            increment = room.states.get("cutoffCyclesIncrement")
+                            if increment:
+                                increment = float(increment)
+                                nextBrightness = currentBrightness - increment
+                                if nextBrightness > 5:
+                                    self.directRoom(room, True, nextBrightness, 0)
+                                else:
+                                    self.directRoom(room, False, 0, 0)
+
+
                         # --- Get expiry time ---
                         cutoff = room.states.get("watchdogCutoff")
+
+                        #self.heartbeatLog(f"Heartbeat processing room {room.name}")
+
+                        #self.debugLog(f"{room.name} cutoff set at {cutoff}")
 
                         if cutoff:
 
@@ -2527,7 +2581,8 @@ class Plugin(indigo.PluginBase):
 
                             if now >= cutoff:
                                 self.automationLog(f"Timeout expired for room '{room.name}'")
-                                self.turnRoomOff(room)
+                                self.initiateCutoff(room)
+                                self.clearRoomTimeout(room)
                                 cutoff = 0
 
 #lets lighten the heartbeat and skip past rooms not subhect to automation

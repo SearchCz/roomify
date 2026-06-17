@@ -8,6 +8,13 @@
 
     <Name>Roomify Observer</Name>
 
+    <metadata>
+        <product>Roomify</product>
+        <author>Daniel Czewski</author>
+        <version>1.0.0</version>
+        <license ref="Roomify Community License v1.0" />
+    </metadata>
+
     <ConfigUI>
 
 
@@ -88,6 +95,13 @@
     <Device type="dimmer" id="roomifyRoom" name="Roomify Room">
 
         <Name>Roomify Room</Name>
+
+        <metadata>
+            <product>Roomify</product>
+            <author>Daniel Czewski</author>
+            <version>1.0.0</version>
+            <license ref="Roomify Community License v1.0" />
+        </metadata>
 
         <ConfigUI>
 
@@ -334,7 +348,7 @@
                 defaultValue="0"
                 visibleBindingId="showAdvancedSettings"
                 visibleBindingValue="true">
-                <Label>Brighnesst to invoke when OFF is autometed</Label>
+                <Label>Brightness to invoke when OFF is automated</Label>
 
                 <List>
                     <Option value="0">None. Off=Off</Option>
@@ -636,6 +650,18 @@
                 <ValueType>Number</ValueType>
                 <TriggerLabel>Audit Attempts Remaining</TriggerLabel>
                 <ControlPageLabel>Audit Attempts Remaining</ControlPageLabel>
+            </State>
+
+            <State id="cutoffCyclesRemaining">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Cutoff Cycles Remaining</TriggerLabel>
+                <ControlPageLabel>Cutoff Cycles Remaining</ControlPageLabel>
+            </State>
+
+            <State id="cutoffCyclesIncrement">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Cutoff Increment</TriggerLabel>
+                <ControlPageLabel>Cutoff Increment</ControlPageLabel>
             </State>
 
 
