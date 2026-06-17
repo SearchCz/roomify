@@ -89,3 +89,5 @@ When getting started with Roomify, especially if you plan to enable the optional
 ![](images/RoomifyLogo215.png)
 ### See Also:
 [Automating Your Rooms](Automating%20Your%20Rooms.md)
+[Device States](DeviceStates.md)
+[Roomify Actions](Roomify%20Actions.md)

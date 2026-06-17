@@ -44,6 +44,21 @@ Now check the box that says “Activate” under “Occupancy-Triggered Automati
 
 Once you save the room, automation begins.
 
+## Automation States
+
+Rooms wait in varied states of readiness, depending on settings and circumstances, and reflected in the room states automationState and automationStateUI.
+
+
+|                           | automationState | automationStateUI                                                                      |
+| ------------------------- | --------------- | -------------------------------------------------------------------------------------- |
+| ![](images/roomify+0.png) | 0               | Standby<br>Waiting to resume active control whenever room reports as [OFF] and vacant. |
+| ![](images/roomify+1.png) | 1               | Actively monitoring occupancy signals to control room lighting,                        |
+| ![](images/Roomify+2.png) | 2               | Room automations are not ACTIVE in this room.                                          |
+| ![](images/roomify+3.png) | 3               | Room automations are not ENABLED in the plugin.                                        |
+
+
+
+
 ![](images/RoomifyLogo215.png)
 ## See Also:
 [Advanced Lighting Options](Advanced%20Lighting%20Options.md)

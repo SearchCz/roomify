@@ -63,4 +63,19 @@ The Observer answers the question:
 
 By separating room-level state from plugin-level state, Roomify provides visibility into both the individual spaces being automated and the overall system responsible for automating them.
 
+
+### States
+
+|State|Type|Description|
+|---|---|---|
+|`houseMode`|String|Current Roomify house mode.|
+|`roomDormancyCutoffEnabled`|String|Indicates whether room dormancy cutoff functionality is globally enabled.|
+|`occupancyAutomationEnabled`|String|Indicates whether occupancy-triggered automation is globally enabled.|
+|`roomAutomationCalmingPeriod`|String|Global automation calming period configuration.|
+|`houseModesEnabled`|String|Indicates whether house mode functionality is enabled.|
+|`lastPublishTimestamp`|String|Timestamp of the last observer state publication.|
+
+---
+
+
 ![](images/RoomifyLogo215.png)
