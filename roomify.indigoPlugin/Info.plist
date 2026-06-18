@@ -8,13 +8,13 @@
     <string>Roomify</string>
 
     <key>CFBundleIdentifier</key>
-    <string>com.yourname.roomify</string>
+    <string>com.searchcz.roomify</string>
 
     <key>CFBundleVersion</key>
-    <string>1.1.00</string>
+    <string>1.0.00</string>
 
     <key>PluginVersion</key>
-    <string>1.1.00</string>
+    <string>1.0.00</string>
 
     <key>ServerApiVersion</key>
     <string>3.6</string>
