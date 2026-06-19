@@ -10,14 +10,25 @@
     <key>CFBundleIdentifier</key>
     <string>com.searchcz.roomify</string>
 
+    <key>PluginId</key>
+    <string>com.searchcz.roomify</string>
+
     <key>CFBundleVersion</key>
-    <string>1.0.00</string>
+    <string>1.0.10</string>
 
     <key>PluginVersion</key>
-    <string>1.0.00</string>
+    <string>1.0.10</string>
 
     <key>ServerApiVersion</key>
     <string>3.6</string>
+
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>https://forums.indigodomo.com/viewforum.php?f=439</string>
+		</dict>
+	</array>
 
 </dict>
 </plist>
