@@ -1968,10 +1968,14 @@ class Plugin(indigo.PluginBase):
 #        if device.deviceTypeId == "Room":
 #            indigo.device.replaceDeviceTypeId("roomifyRoom")
         self.getRoomRuntime(device.id)
-
+#CZEWSKI
         device.updateStateOnServer("automationGateStatus", True)
         roomOccupancyAutomationActive = device.pluginProps.get(
             "roomOccupancyAutomationActive", True)
+
+        self.debugLog(f"Room Occupancy Atomations Active: {roomOccupancyAutomationActive}")
+
+        device.updateStateOnServer("roomOccupancyAutomationActive",roomOccupancyAutomationActive)
 
         initialBrightness = device.pluginProps.get(
             "initialBrightness", 80)
@@ -2000,6 +2004,20 @@ class Plugin(indigo.PluginBase):
         self.initializeRoomBrightnessState("outro", device)
 
         device.updateStateOnServer("automationState", device.states.get("automationState", 0))
+
+        roomOccupancyAutomationActive = device.pluginProps.get(
+            "roomOccupancyAutomationActive", True)
+
+        self.debugLog(f"Room Occupancy Atomations Active: {roomOccupancyAutomationActive}")
+
+        device.updateStateOnServer("roomOccupancyAutomationActive",roomOccupancyAutomationActive)
+
+        roomDormancyCutoffActive = device.pluginProps.get(
+            "roomDormancyCutoffActive", True)
+
+        self.debugLog(f"Room Dormancy Cutoff Active: {roomDormancyCutoffActive}")
+
+        device.updateStateOnServer("roomDormancyCutoffActive",roomDormancyCutoffActive)
 
         #maybe not though?
         # self.recomputeRoom(device)
