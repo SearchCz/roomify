@@ -500,17 +500,30 @@ class Plugin(indigo.PluginBase):
         mode = self.houseMode
         roomType = room.pluginProps.get("roomType", "UNKNOWN")
 
+
+
         scaleMap = {
-            "MORNING": 0.66,
-            "DAY": 1.0,
-            "EVENING": 0.66,
-            "NIGHT": 0.33,
-            "AWAY": 1.0,
-            "QUIET": 0.4,
-            "CLEANING": 2.0,
-            "BEDTIME": .20,
-            "SLEEP": .00
+
+            "MORNING": float(self.pluginPrefs.get("morningModeFactor", 0.66)),
+
+            "DAY": float(self.pluginPrefs.get("dayModeFactor", 1.00)),
+
+            "EVENING": float(self.pluginPrefs.get("eveningModeFactor", 0.66)),
+
+            "NIGHT": float(self.pluginPrefs.get("nightModeFactor", 0.33)),
+
+            "BEDTIME": float(self.pluginPrefs.get("bedtimeModeFactor", 0.20)),
+
+            "SLEEP": float(self.pluginPrefs.get("sleepModeFactor", 0.00)),
+
+            "AWAY": float(self.pluginPrefs.get("awayModeFactor", 1.00)),
+
+            "CLEANING": float(self.pluginPrefs.get("cleaningModeFactor", 2.00)),
+
+            "QUIET": float(self.pluginPrefs.get("quietModeFactor", 0.40)),
+
         }
+
 
         scale = scaleMap.get(mode, 1.0)
 
@@ -580,12 +593,49 @@ class Plugin(indigo.PluginBase):
             except:
                 errorDict[field] = "Enter a number from 0 to 100."
 
+####
+
+####
+
         if len(errorDict) > 0:
             return (False, valuesDict, errorDict)
 
         return (True, valuesDict)
 
+    def validatePrefsConfigUi(self, valuesDict):
+        errorsDict = indigo.Dict()
 
+        factor_fields = [
+            "morningModeFactor",
+            "dayModeFactor",
+            "eveningModeFactor",
+            "nightModeFactor",
+            "bedtimeModeFactor",
+            "sleepModeFactor",
+            "awayModeFactor",
+            "cleaningModeFactor",
+            "quietModeFactor",
+        ]
+
+        for field_id in factor_fields:
+            raw_value = valuesDict.get(field_id, "").strip()
+
+            try:
+                factor = float(raw_value)
+            except ValueError:
+                errorsDict[field_id] = "Enter a numeric brightness multiplier."
+                continue
+
+            if factor < 0:
+                errorsDict[field_id] = "Brightness multiplier cannot be negative."
+                continue
+
+            valuesDict[field_id] = f"{factor:.2f}"
+
+        if errorsDict:
+            return False, valuesDict, errorsDict
+
+        return True, valuesDict
 
 #   AUTOMATION BLOCK
 
@@ -1273,15 +1323,24 @@ class Plugin(indigo.PluginBase):
 
             self.loadPluginPrefs()
 
-
             createObserver = self.pluginPrefs.get("createObserver", False)
-            self.observerId = self.pluginPrefs.get("obsserverName")
 
-            if createObserver and self.observerId == "":
+            rawId = self.pluginPrefs.get("observerId")
 
-                observerName = self.pluginPrefs.get("obsserverName", "Roomify Observer")
+            observerId = int(rawId or 0)
+
+            self.debugLog(f"createObserver={createObserver}, observerId={observerId}")
+
+            if createObserver and observerId == 0:
+
+                observerName = self.pluginPrefs.get("observerName", "Roomify Observer")
+                self.debugLog(f"Creating Observer {observerName}")
                 newDevice = indigo.device.create(indigo.kProtocol.Plugin, address=None, name=observerName, deviceTypeId="roomifyObserver", props=None, folder=None)
+                self.debugLog(f"New Obser4ver Device ID:{newDevice.id}")
                 self.pluginPrefs["observerId"] = newDevice.id
+
+            self.recomputeAllRooms()
+            self.publishToAllObservers()
 
 #            self.logger.info("Plugin preferences reloaded")            
 
@@ -1923,6 +1982,10 @@ class Plugin(indigo.PluginBase):
         #self.buildIndicatorRoomIndex()
         #self.buildVacancyAuthorityRoomIndex()
         #self.buildGateRoomIndex()
+
+        #lets create rooms as being authorized and vacant buy default. that 
+        #meaning open to autoation
+
 
         self.checkGates(device)
         
