@@ -45,7 +45,7 @@ A Roomify room understands:
 The room itself becomes the automation object.
 
 ⸻
-![](images/RoomifyPoster.png)
+![](docs/images/RoomifyPoster.png)
 ## Core Concepts
 
 ### Rooms
