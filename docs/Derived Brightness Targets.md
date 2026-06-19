@@ -1,6 +1,6 @@
 ## House Modes
 
-House Modes apply a brightness scaling factor to Roomify's calculated target brightness.
+House Modes apply a brightness scaling factor to Roomify's calculated target brightness. These default values are subject to override via the plugin configuration. 
 
 |House Mode|Factor|Effect|
 |---|---|---|
@@ -15,6 +15,14 @@ House Modes apply a brightness scaling factor to Roomify's calculated target bri
 |Cleaning|2.00×|Aggressively increase brightness, subject to room limits.|
 
 > Brightness factors are applied before Room Type floor and ceiling constraints are enforced.
+
+### Brightness Factor Override(s)
+
+The default multipliers listed above reflect my preferences for lighting adjustments appropriate to various circumstances in the home. If you have different prefernces, you can implement them via the Roomify plugin configuration in the **House Modes** section.
+
+![](images/houseModesFactors.png)
+
+Any changes you make here will be immediately applied to rooms that are presently on and automated.
 
 ---
 

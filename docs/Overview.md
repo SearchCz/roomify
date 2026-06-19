@@ -108,8 +108,6 @@ The goal is to make rooms first-class participants in your smart home.
 
 ## See Also: 
 [Getting Started](Getting%20Started.md)
-
 [Device States](DeviceStates.md)
-
 [Derived Brightness Targets](Derived%20Brightness%20Targets.md)
 
