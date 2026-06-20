@@ -238,15 +238,24 @@
         <CallbackMethod>setRoomModeX</CallbackMethod>
     </Action>   
 
-
-    <Action id="enableGuardrails" uiPath="System-Level Settings">
-        <Name>Enable Guardrails</Name>
-        <CallbackMethod>enableGuardrails</CallbackMethod>
+    <Action id="allStandby" uiPath="System-Wide Actions">
+        <Name>Surrender Authority Everywhere</Name>
+        <CallbackMethod>allStandby</CallbackMethod>
     </Action>
 
-    <Action id="disableGuardrails" uiPath="System-Level Settings">
-        <Name>Disable Guardrails</Name>
-        <CallbackMethod>disableGuardrails</CallbackMethod>
+    <Action id="allAuthorize" uiPath="System-Wide Actions">
+        <Name>Resume Authroity Everywhere</Name>
+        <CallbackMethod>allAuthorize</CallbackMethod>
+    </Action>
+
+    <Action id="allOccupy" uiPath="System-Wide Actions">
+        <Name>Occupy All Rooms</Name>
+        <CallbackMethod>allOccupy</CallbackMethod>
+    </Action>
+
+    <Action id="allVacate" uiPath="System-Wide Actions">
+        <Name>Vacate All Rooms</Name>
+        <CallbackMethod>allVacate</CallbackMethod>
     </Action>
 
 

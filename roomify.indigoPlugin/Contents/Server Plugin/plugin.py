@@ -18,6 +18,9 @@ import datetime
 import uuid
 
 #latest changes:
+# - 2024.06.20 introducing allOccuoancy and allAuthority capabilities so that roomify can
+# -            surrender and resume automation authority everywhere
+# -            treat all rooms as occupied or vacant everywhere
 # - added the concept of "automation grace period" which is a period of time after occupancy
 # - added occupancy indicator sensibilities to better differentiate occupancy beginning -v- continuing occupancy (e.g. occupancy authority sensor that extends the grace period when on)
 
@@ -32,6 +35,39 @@ import uuid
 
 # - implement 
 class Plugin(indigo.PluginBase):
+
+    def allAuthority(self, mode):
+        rooms = indigo.devices.iter("self.roomifyRoom")
+        for room in rooms:
+            if mode:
+                self.authorityLog(f"Room '{room.name}' is resuming automation authority.")
+                self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), True, "INTENTION: Resume authoirty everywhere")
+                room.updateStateOnServer("automationsAuthorized",mode)
+                self.evaluateAutomationState(room)
+            else:
+                self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "INTENTION: Suspend authoirty everywhere")
+                room.updateStateOnServer( "automationsAuthorized",False)
+                self.evaluateAutomationState(room)
+
+
+    def allStandby(self, action):
+        self.authorityLog(f"Placing all rooms on standby")
+        self.allAuthority(False)
+
+    def allAuthorize(self, action):
+        self.authorityLog(f"Authorizing all rooms")
+        self.allAuthority(True)
+
+    def allOccupy(self, action):
+        self.allOccupancy(True)
+
+    def allVacate(self, action):
+        self.allOccupancy(False)
+
+    def allOccupancy(self, mode):
+        rooms = indigo.devices.iter("self.roomifyRoom")
+        for room in rooms:
+            self.setOccupancy(room,mode)
 
     def systemAutomationX(self, action):
         mode = action.pluginTypeId  # e.g. "setNight"
@@ -109,7 +145,7 @@ class Plugin(indigo.PluginBase):
         elif first5 == "toggl":
             newValue = not oldValue
 
-        self.recordTransferOfAuthority(device, oldValue,newValue, "Indugo Callback")
+        self.recordTransferOfAuthority(device, oldValue,newValue, "INTENTION: Indigo Callback Invoked")
 
         device.updateStateOnServer("automationsAuthorized",newValue)
 
@@ -1265,7 +1301,7 @@ class Plugin(indigo.PluginBase):
             device.updateStateOnServer(
                 "automationsAuthorized",
                 False)
-            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "User Set to Standby")
+            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "INTENTION: User Set to Standby")
 
         elif next == 1:
             device.updateStateOnServer(
@@ -1274,7 +1310,7 @@ class Plugin(indigo.PluginBase):
             device.updateStateOnServer(
                 "automationsAuthorized",
                 True)
-            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "User Set to Active")
+            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "INTENTION: User Set to Active")
         elif next == 2:
             device.updateStateOnServer(
                 "roomOccupancyAutomationActive",
@@ -1282,7 +1318,7 @@ class Plugin(indigo.PluginBase):
             device.updateStateOnServer(
                 "automationsAuthorized",
                 True)
-            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "User Set to Inactive")
+            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "INTENTION: User Set to Inactive")
             
     
         self.evaluateAutomationState(device)
@@ -1302,9 +1338,9 @@ class Plugin(indigo.PluginBase):
             newValue)
 
         if newValue:
-            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "User Requested Standby")
+            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "INTENTION: User Toggled into Standby")
         else:
-            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), True, "User Requested Activation")
+            self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), True, "INTENTION: User Toggled into Active")
         
 
         self.evaluateAutomationState(device)
@@ -1860,7 +1896,7 @@ class Plugin(indigo.PluginBase):
                 # maybe dont assume its a disruption?
                 # TO UNDERSTAND DISRUPTION
                 if  self.isDisrupted(room):
-                    self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, newDev.name)
+                    self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "DISRUPTION: Causee by " + newDev.name)
                     room.updateStateOnServer(
                         "automationsAuthorized",
                         False)
@@ -1968,7 +2004,7 @@ class Plugin(indigo.PluginBase):
 #        if device.deviceTypeId == "Room":
 #            indigo.device.replaceDeviceTypeId("roomifyRoom")
         self.getRoomRuntime(device.id)
-#CZEWSKI
+
         device.updateStateOnServer("automationGateStatus", True)
         roomOccupancyAutomationActive = device.pluginProps.get(
             "roomOccupancyAutomationActive", True)
@@ -2110,7 +2146,7 @@ class Plugin(indigo.PluginBase):
             self.automationLog(f"Confirming watchdog cutoff for room '{room.name}'")
             self.setRoomTimeout(room)
             if alreadyAuthorized:
-                self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, f"{cause} outside of Roomify intent")
+                self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, f"DISRUPTION: {cause} outside of Roomify intent")
                 if  self.globalAuthorityAutoStandbyRecovery:
                     self.authorityLog(f"{room.name} surrendering automation authority per '{cause}'")
                     self.revokeAAU(room)
@@ -2124,7 +2160,7 @@ class Plugin(indigo.PluginBase):
                 if not room.states.get("occupied", False):
                     if  self.globalAuthorityAutoStandbyRecovery:
                         self.authorityLog(f"Room '{room.name}' is unoccupied & off: resuming automation authority.")
-                        self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), True, "Vacant room settled into an OFF state")
+                        self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), True, "DISRUPTION ENDED: Vacant room settled into an OFF state")
                         room.updateStateOnServer("automationsAuthorized", True) 
                     else:
                         self.authorityLog(f"Room '{room.name}' is unoccupied & off [BUT] resuming automation authority is not enble.")
@@ -2300,7 +2336,7 @@ class Plugin(indigo.PluginBase):
 #                self.applyTargetStateToDevices(device, True, device.states.get("initialBrightness") or 50)
 #                self.automationLog(f"Device turned ON via action: {device.name} ... setting automationsAuthorized to False to prevent feedback loop")
                 if self.globalAuthorityAutoStandbyRecovery:
-                    self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "Room ON Command Processed")
+                    self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), False, "DISRUPTION: Room ON Command Processed")
                     device.updateStateOnServer("automationsAuthorized", False)
                     self.evaluateAutomationState(device)
                 return
@@ -2310,7 +2346,7 @@ class Plugin(indigo.PluginBase):
                 self.authorityLog(f"OFF requested: {device.name}")
                 self.turnRoomOff(device)
                 if self.globalAuthorityAutoStandbyRecovery:
-                    self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), True, "Room OFF Command Processed")
+                    self.recordTransferOfAuthority(device, device.states.get("automationsAuthorized"), True, "DISRUPTION ENDED: Room OFF Command Processed")
 
                     device.updateStateOnServer("automationsAuthorized", True)
                  
@@ -2542,6 +2578,8 @@ class Plugin(indigo.PluginBase):
     def considerReauthorization(self,room):
 
         #heartbeat invokes this method to bring rooms out of suspended authrization when appropriate
+        #but should it?
+
 
         if room.states.get("automationsAuthorized"):
             #no need to re-authorize a room thaty is already authorized
@@ -2563,6 +2601,10 @@ class Plugin(indigo.PluginBase):
             return
 #        else:
 #            self.debugLog(f"{room.name} with onState = {room.states.get("onState")} is considered OFF by isOn")
+
+        authorityChangeInitiator = room.states("authorityChangeInitiator")
+        if authorityChangeInitiator.statrtwith("INTENT"):
+            return
 
         #we know this room to be unauthorized, vacant and off. so lets re-authorize it
         self.reAuthorize(room)
