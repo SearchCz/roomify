@@ -481,6 +481,8 @@ class Plugin(indigo.PluginBase):
         self.pluginPrefs["houseMode"] = newMode
         self.houseMode = newMode
 
+        #maybe share this with roomify?
+
 
         # trigger side effects
         self.publishToAllObservers()
@@ -2602,8 +2604,8 @@ class Plugin(indigo.PluginBase):
 #        else:
 #            self.debugLog(f"{room.name} with onState = {room.states.get("onState")} is considered OFF by isOn")
 
-        authorityChangeInitiator = room.states("authorityChangeInitiator")
-        if authorityChangeInitiator.statrtwith("INTENT"):
+        authorityChangeInitiator = room.states.get("authorityChangeInitiator")
+        if authorityChangeInitiator.startswith("INTENT"):
             return
 
         #we know this room to be unauthorized, vacant and off. so lets re-authorize it
