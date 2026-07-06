@@ -1,10 +1,10 @@
-# Securify Community License v1.0
+# Roomify Community License v1.0
 
 Copyright (c) 2026 Daniel Czewski
 
 ## Purpose
 
-Securify is made available to the community so that users may freely use, study, modify, improve, and share the software.
+Roomify is made available to the community so that users may freely use, study, modify, improve, and share the software.
 
 This license is intended to encourage collaboration while preventing the software, or derivative works based upon it, from being sold, relicensed, or incorporated into commercial software offerings.
 
@@ -12,7 +12,7 @@ This license is intended to encourage collaboration while preventing the softwar
 
 ## Permissions
 
-Subject to the terms and conditions of this license, any person obtaining a copy of Securify is granted permission to:
+Subject to the terms and conditions of this license, any person obtaining a copy of Roomify is granted permission to:
 
 * Use the software for personal, educational, organizational, governmental, or business purposes.
 * Study and inspect the source code.
@@ -27,7 +27,7 @@ No fee, royalty, or payment is required for the above activities.
 
 ## Conditions
 
-Any redistribution of Securify, whether modified or unmodified, must comply with all of the following requirements:
+Any redistribution of Roomify, whether modified or unmodified, must comply with all of the following requirements:
 
 ### 1. Attribution Required
 
@@ -48,13 +48,13 @@ Reasonable methods include:
 
 ### 3. Same License Required
 
-Any modified, forked, or derivative version of Securify must be distributed under this same license.
+Any modified, forked, or derivative version of Roomify must be distributed under this same license.
 
 No recipient may impose additional restrictions or substitute a different license.
 
 ### 4. Source Availability Required
 
-If you distribute a modified version of Securify, you must make the corresponding source code available to recipients of that modified version.
+If you distribute a modified version of Roomify, you must make the corresponding source code available to recipients of that modified version.
 
 ---
 
@@ -62,25 +62,25 @@ If you distribute a modified version of Securify, you must make the correspondin
 
 The software may be used within commercial, governmental, educational, or nonprofit organizations.
 
-However, neither Securify nor any derivative work may be sold, licensed for a fee, rented, sublicensed, monetized, or otherwise used as a commercial software product.
+However, neither Roomify nor any derivative work may be sold, licensed for a fee, rented, sublicensed, monetized, or otherwise used as a commercial software product.
 
 The following activities are prohibited:
 
-* Selling Securify.
-* Selling modified versions of Securify.
-* Charging license fees for Securify.
-* Including Securify in a paid software bundle.
-* Offering Securify as a paid service or subscription.
-* Relicensing Securify under commercial terms.
-* Incorporating substantial portions of Securify into software that is sold or licensed for a fee.
+* Selling Roomify.
+* Selling modified versions of Roomify.
+* Charging license fees for Roomify.
+* Including Roomify in a paid software bundle.
+* Offering Roomify as a paid service or subscription.
+* Relicensing Roomify under commercial terms.
+* Incorporating substantial portions of Roomify into software that is sold or licensed for a fee.
 
-Nothing in this section prohibits using Securify to automate or manage a business, organization, office, warehouse, retail space, or other commercial environment.
+Nothing in this section prohibits using Roomify to automate or manage a business, organization, office, warehouse, retail space, or other commercial environment.
 
 ---
 
 ## No Trademark Rights
 
-This license does not grant any rights to use the name "Securify" in a manner that implies endorsement by the original author.
+This license does not grant any rights to use the name "Roomify" in a manner that implies endorsement by the original author.
 
 Forks and derivative works should clearly distinguish themselves from the original project when appropriate.
 
@@ -96,4 +96,4 @@ IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAG
 
 ## Acceptance
 
-By using, modifying, distributing, or publishing Securify, you agree to the terms of this license.
+By using, modifying, distributing, or publishing Roomify, you agree to the terms of this license.
