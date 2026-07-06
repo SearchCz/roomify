@@ -293,6 +293,15 @@
     <Field id="sepObserver" type="separator" >
     </Field>
 
+    <!-- ===================================================== -->
+    <!-- SECURIFY COOPERATION -->
+    <!-- ===================================================== -->
+
+    <Field id="securifyCooperationEnabled"
+        type="checkbox"
+        defaultValue="false">
+        <Label>Cooperate with Securify (if available)</Label>
+    </Field>
 
 
     <!-- ===================================================== -->

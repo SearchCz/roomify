@@ -467,27 +467,85 @@ class Plugin(indigo.PluginBase):
 
 
 # HOUSE MODE CODE
-    def setHouseModeX(self, action):
 
-        mode = action.pluginTypeId  # e.g. "setNight"
-        newMode = mode.removeprefix("set").upper()
-        oldMode = self.pluginPrefs.get("houseMode", None)
+    def suggestHouseMode(self, newMode):
+        #this is the entry point for roomify to suggest that other plugins adopt a new housemode
+        self.debugLog(f"XTALK: May Suggest house mode {newMode} to Securify")
+        if self.suspendCrosstalk:
+            self.debugLog("XTALK: Cross-talk suspended. Not suggesting house mode.")
+            self.suspendCrosstalk = False
+            return
+        if self.securifyPlugin and self.securifyPlugin.isEnabled():
+            self.debugLog(f"XTALK: Suggesting house mode {newMode} to Securify")
+            try:
+                self.securifyPlugin.executeAction(
+                    "set" + newMode.capitalize() + "Suggested"
+                )
+            except:
+                self.debugLog("XTALK: Error suggesting house mode to Securify")
+        else:
+            self.debugLog("Securify plugin not available or not enabled. Cannot suggest house mode.")
+
+    def considerHouseModeX(self, action):
+        #this is the entry point for roomify to suggest we adopt a new housemode
+        #since the roomify plugin is not a dependency, we will only do this if 
+        #securify allows this cooperation 
+        self.suspendCrossTalk = True
+        if self.securifyCooperationEnabled:
+            newMode = action.pluginTypeId.removeprefix("set").removesuffix("Suggested").upper()
+            self.debugLog(f"XTALK: Accepting suggested house mode {newMode}")
+            self.suspendCrossTalk = True
+            self.setHouseMode(newMode)
+
+    def shareHouseModeX(self, action):
+        #this is how we responde to requests for our current houseMode
+        return self.houseMode
+
+    def requestHouseMode(self, action):
+        if self.securifyPlugin and self.securifyPlugin.isEnabled():
+            self.debugLog(f"XTALK: fetching house mode from Securify")
+            try:
+                newMode = self.securifyPlugin.executeAction("shareHouseMode")
+                self.suspendCrossTalk = True
+                self.setHouseMode(newMode)
+            except:
+                self.debugLog("XTALK: Error fetching house mode from Securify")
+        else:
+            self.debugLog("Securify plugin not available or not enabled. Cannot suggest house mode.")
+        
+    def setHouseMode(self, newMode):
+
+        oldMode = self.houseMode
+
+        self.debugLog(f"HouseMode change requested: {oldMode} → {newMode} ... suspend xtalk = {self.suspendCrossTalk}")
 
         if oldMode == newMode:
-            self.automationLog(f"HouseMode already {newMode}, ignoring")
+            self.deviceLog(f"HouseMode already {newMode}, ignoring")
+            self.suspendCrossTalk = False
             return
 
-        self.automationLog(f"HouseMode change: {oldMode} → {newMode}")
+        self.deviceLog(f"HouseMode change: {oldMode} → {newMode} suspend={self.suspendCrossTalk}")
         self.pluginPrefs["houseMode"] = newMode
         self.houseMode = newMode
+        self.debugLog(f"NEW ROOMIFY HOUSEMODE={self.houseMode}")
 
-        #maybe share this with roomify?
+        if self.securifyCooperationEnabled and ( not self.suspendCrossTalk  ):
+            self.suggestHouseMode(newMode)
 
+        self.suspendCrossTalk  = False
 
         # trigger side effects
         self.publishToAllObservers()
 
         self.recomputeAllRooms()
+
+    def setHouseModeX(self, action):
+
+        mode = action.pluginTypeId  # e.g. "setNight"
+        newMode = mode.removeprefix("set").upper()
+
+        self.setHouseMode(newMode)
+
 
 
     def publishToAllObservers(self):
@@ -498,6 +556,7 @@ class Plugin(indigo.PluginBase):
             self.publishToObserver(observer,humanTime)
 
     def publishToObserver(self, observer, now):
+        self.debugLog(f"Publishing houseMode {self.houseMode} to observer {observer.name}")
         observer.updateStateOnServer("houseMode", self.houseMode)
 
         observer.updateStateOnServer("roomDormancyCutoffEnabled", self.globalRoomDormancyCutoffEnabled)
@@ -937,6 +996,9 @@ class Plugin(indigo.PluginBase):
 
     # runs when plugin loads. good for initializing variables, loading prefs, etc. but not for doing anything with devices since they might not be loaded yet (that's deviceStartComm)
     def startup(self):
+        self.suspendCrosstalk = False
+        self.houseMode = ""
+
         #self.logger.info(indigo.dimmer.setBrightness.__doc__)
         self.roomRuntime = {}
         self.buildRoomTypeDefaults()
@@ -947,7 +1009,7 @@ class Plugin(indigo.PluginBase):
 
         self.debugLog("[DEBUG]Roomify plugin starting")
 
-        self.houseMode = self.pluginPrefs.get("houseMode", "DAY")
+#        self.houseMode = self.pluginPrefs.get("houseMode", "DAY")
         self.publishToAllObservers()
         
         indigo.devices.subscribeToChanges()
@@ -1045,6 +1107,18 @@ class Plugin(indigo.PluginBase):
 
         self.errorLogging = self.pluginPrefs.get(
             "errorLogging", True)
+        
+        self.securifyPlugin = indigo.server.getPlugin("com.searchcz.securify")
+        self.securifyCooperationEnabled = self.pluginPrefs.get("securifyCooperationEnabled", False)
+
+        x = False
+        if self.securifyCooperationEnabled:
+            x = self.requestHouseMode(self)
+
+        if not x:
+            self.debugLog
+            self.setHouseMode(self.pluginPrefs.get("houseMode"))
+
 
         self.automationLog(f"Globally Authorized Timeouts={self.globalRoomDormancyCutoffEnabled}")
         self.automationLog(f"Globally Authorized Default={self.globalRoomDormancyDefault}")
@@ -2838,3 +2912,27 @@ class Plugin(indigo.PluginBase):
         except self.StopThread:
             self.logger.info("Roomify heartbeat thread stopped")
 
+    def updateSecurityStatus(self, action):
+
+        try:
+            deviceId = int(action.props.get("deviceId"))
+
+            alertScore = action.props.get("alertScore")
+            alertClassification = action.props.get("alertClassification")
+            alertClassificationUI = action.props.get("alertClassificationUI")
+
+            dev = indigo.devices[deviceId]
+
+            dev.updateStatesOnServer([
+                {"key": "alertScore", "value": alertScore},
+                {"key": "alertClassification", "value": alertClassification},
+                {"key": "alertClassificationUI", "value": alertClassificationUI},
+            ])
+
+            self.debugLog(
+                f"Security state updated for {dev.name}: "
+                f"score={alertScore}, class={alertClassification}"
+            )
+
+        except Exception as e:
+            self.errorLog(f"updateSecurityStatus failed: {e}")

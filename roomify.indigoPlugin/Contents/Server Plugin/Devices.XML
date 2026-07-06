@@ -664,6 +664,23 @@
                 <ControlPageLabel>Cutoff Increment</ControlPageLabel>
             </State>
 
+            <State id="alertScore">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Alert Score</TriggerLabel>
+                <ControlPageLabel>Alert Score</ControlPageLabel>
+            </State>
+
+            <State id="alertClassification">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Alert Classification</TriggerLabel>
+                <ControlPageLabel>Alert Classification</ControlPageLabel>
+            </State>
+
+            <State id="alertClassificationUI">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Alert Classification (UI)</TriggerLabel>
+                <ControlPageLabel>Alert Classification (UI)</ControlPageLabel>
+            </State>
 
 
         </States>

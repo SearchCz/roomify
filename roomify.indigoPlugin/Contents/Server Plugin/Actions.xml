@@ -1,6 +1,9 @@
 <Actions>
 
-
+    <Action id="updateSecurityStatus" uiPath="Security">
+        <Name>Update Security Status</Name>
+        <CallbackMethod>updateSecurityStatus</CallbackMethod>
+    </Action>
 
     <Action id="enableRormancyCutoff" uiPath="Dormancy Cutoff Settings">
         <Name>System Enable: Room Dormancy Cutoff</Name>
@@ -137,6 +140,45 @@
         <CallbackMethod>roomOccupancyX</CallbackMethod>
     </Action>
 
+    <Action id="setMorningSuggested" uiPath="Consider House Mode">
+        <Name>ConsiderHouse Mode to Morning</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setDaySuggested" uiPath="Consider House Mode">
+        <Name>Consider House Mode to Day</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setEveningSuggested" uiPath="Consider House Mode">
+        <Name>Consider House Mode to Evening</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setNightSuggested" uiPath="Consider House Mode">
+        <Name>Consider House Mode to Night</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setSleepSuggested" uiPath="Consider House Mode">
+        <Name>Consider House Mode to Sleep</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setCleaningSuggested" uiPath="Consider House Mode">
+        <Name>Consider House Mode to Cleaning</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="setAwaySuggested" uiPath="Consider House Mode">
+        <Name>Consider House Mode to Away</Name>
+        <CallbackMethod>considerHouseModeX</CallbackMethod>
+    </Action>
+
+    <Action id="shareHouseMode">
+        <Name>Share House Mode</Name>
+        <CallbackMethod>shareHouseModeX</CallbackMethod>
+    </Action>
 
     <Action id="setMorning" uiPath="Set House Mode">
         <Name>Set House Mode to Morning</Name>
