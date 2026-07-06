@@ -1,3 +1,6 @@
+## 1.3.2
+- Updated to coordinate with Securify plugin
+
 ## 1.1.2
 - Fixed type in heartbeat code causing logfile errors, failing to consider 
 - Room was failing to consider homeowner intent before reactivating room automations
