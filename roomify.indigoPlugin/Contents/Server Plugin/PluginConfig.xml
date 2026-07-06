@@ -2,132 +2,9 @@
 
 <PluginConfig>
 
-    <!-- ===================================================== -->
-    <!-- GLOBAL AUTOMATION SETTINGS -->
-    <!-- ===================================================== -->
-    <!-- ROOM DORMANCY  -->
-
-    <Field id="roomDormancyCutoffEnabled"
-        type="checkbox"
-        defaultValue="false">
-        <Label>Enable Room Dormancy Cutoff</Label>
-    </Field>
-
-    <Field id="roomDormancyCutoffDefault"
-           type="menu"
-           defaultValue="360"
-           visibleBindingId="roomDormancyCutoffEnabled"
-           visibleBindingValue="true"
-           alignWithControl="true">
-        <Label>Default Duration</Label>
-
-        <List>
-            <Option value="30">30 Minutes</Option>
-            <Option value="60">60 Minutes</Option>
-            <Option value="90">90 Minutes</Option>
-            <Option value="120">2 Hours</Option>
-            <Option value="180">3 Hours</Option>
-            <Option value="240">4 Hours</Option>
-            <Option value="300">5 Hours</Option>
-            <Option value="360">6 Hours</Option>
-            <Option value="540">9 Hours</Option>
-            <Option value="720">12 Hours</Option>
-            <Option value="1080">18 Hours</Option>
-            <Option value="1440">24 Hours</Option>
-        </List>
-
-        <Description>
-            Time before a dormant room is subject to cutoff
-        </Description>
-    </Field>
-
-    <Field id="label_describe_dormancy" type="label" 
-        alignWithControl="False">
-        <Label>Room dormancy cutoffs enforce a time limit on unchanged lighting. This looks for lights errantly left on by a person or process.</Label>
-    </Field>
-
-    <Field id="sepDormancy" type="separator" >
-    </Field>
-
-    <!-- Automations -->
-
-    <Field id="occupancyAutomationEnabled"
-        type="checkbox"
-        defaultValue="false">
-        <Label>Enable Occupancy-Triggered Automations</Label>
-    </Field>
-
-    <Field id="authorityAutoStandbyRecovery"
-        type="checkbox"
-        defaultValue="true"
-        visibleBindingId="occupancyAutomationEnabled"
-        visibleBindingValue="true">
-        <Label>Automatic Authority Standby and Recovery</Label>
-    </Field>
-
-    <Field id="vacancyGracePeriod"
-        type="textfield"
-        defaultValue="5"
-        visibleBindingId="occupancyAutomationEnabled"
-        visibleBindingValue="true">
-        <Label>Default Occupancy Grace Period (minutes)</Label>
-        <Description>
-            Occupancy is presumed for a time after the last occupancy signal is processed
-        </Description>
-    </Field>
-
-    <Field id="phasedLightingEnabled"
-        type="checkbox"
-        defaultValue="false"
-        visibleBindingId="occupancyAutomationEnabled"
-        visibleBindingValue="true">
-        <Label>Enable 3-Phase Lighting</Label>
-    </Field>
-
-    <Field id="roomAutomationCalmingPeriod"
-           type="menu"
-           defaultValue="5"
-           visibleBindingId="occupancyAutomationEnabled"
-           visibleBindingValue="true"
-           alignWithControl="true">
-        <Label>Automation Calming Allowance</Label>
-
-        <List>
-            <Option value="5">5 Seconds</Option>
-            <Option value="10">10 Seconds</Option>
-            <Option value="15">15 Seconds</Option>
-            <Option value="30">30 Seconds</Option>
-            <Option value="60">1 Minute</Option>
-        </List>
-
-        <Description>
-            Time before a dormant room is subject to cutoff
-        </Description>
-    </Field>
-
-    <Field id="label_describe_ocupancytriggers" type="label" 
-        alignWithControl="False">
-        <Label>Occupancy triggers control room lighting automations in response to presence signals.</Label>
-    </Field>
-
-    <Field id="sep_trigs2" type="separator"/>
-
-    <!-- ===================================================== -->
-    <!-- House Modes -->
-    <!-- ===================================================== -->
-
-    <Field id="houseModesEnabled"
-        type="checkbox"
-        defaultValue="false">
-        <Label>Enable House Modes</Label>
-    </Field>
-
-
     <Field id="defaultHouseMode"
            type="menu"
            defaultValue="DAY"
-           visibleBindingId="houseModesEnabled"
-           visibleBindingValue="true"
            alignWithControl="true">
         <Label>Default House Mode @ Startup</Label>
 
@@ -140,122 +17,200 @@
             <Option value="MEDIA">Media</Option>
             <Option value="CLEANING">Cleaning</Option>
             <Option value="SLEEP">Sleep</Option>
+            <Option value="AWAY">Away</Option>
         </List>
     </Field>
 
-    <Field id="customModesEnabled"
+    <Field id="watchfulness"
+        type="menu"
+        defaultValue="HOUSE">
+        <Label>Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+            <Option value="HOUSE">House Mode Determined</Option>
+        </List>
+    </Field>
+
+    <Field id="watchfulnessExplanation"
+        type="label"
+        alignWithControl="true">
+        <Label>Select "House Mode Determined" to automate dynamic watchfulness.</Label>
+    </Field>
+
+    <Field id="customWatchfulness"
         type="checkbox"
         defaultValue="false"
-        visibleBindingId="houseModesEnabled"
-        visibleBindingValue="true">
-        <Label>Set Adjustment Multipliers</Label>
+        visibleBindingId="watchfulness"
+        visibleBindingValue="HOUSE">
+        <Label>Customize House Mode Watchfulness</Label> 
     </Field>
 
-    <Field id="morningModeFactor"
-        type="textfield"
-        defaultValue="0.66"
-        visibleBindingId="customModesEnabled"
+    <Field id="morningWatchfulness"
+        type="menu"
+        defaultValue="50"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>MORNING Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>MORNING Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="dayModeFactor"
-        type="textfield"
-        defaultValue="1.00"
-        visibleBindingId="customModesEnabled"
+    <Field id="dayWatchfulness"
+        type="menu"
+        defaultValue="50"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>DAY Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>DAY Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="eveningModeFactor"
-        type="textfield"
-        defaultValue="0.66"
-        visibleBindingId="customModesEnabled"
+    <Field id="eveningWatchfulness"
+        type="menu"
+        defaultValue="75"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>EVENING Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>EVENING Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="nightModeFactor"
-        type="textfield"
-        defaultValue="0.33"
-        visibleBindingId="customModesEnabled"
+    <Field id="nightWatchfulness"
+        type="menu"
+        defaultValue="75"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>NIGHT Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>NIGHT Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="bedtimeModeFactor"
-        type="textfield"
-        defaultValue="0.20"
-        visibleBindingId="customModesEnabled"
+    <Field id="bedtimeWatchfulness"
+         type="menu"
+        defaultValue="90"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>BEDTIME Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>BEDTIME Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="sleepModeFactor"
-        type="textfield"
-        defaultValue="0.00"
-        visibleBindingId="customModesEnabled"
+    <Field id="sleepWatchfulness"
+        type="menu"
+        defaultValue="90"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>SLEEP Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>SLEEP Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="awayModeFactor"
-        type="textfield"
-        defaultValue="1.00"
-        visibleBindingId="customModesEnabled"
+    <Field id="awayWatchfulness"
+        type="menu"
+        defaultValue="100"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>AWAY Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>AWAY Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="cleaningModeFactor"
-        type="textfield"
-        defaultValue="2.00"
-        visibleBindingId="customModesEnabled"
+    <Field id="cleaningWatchfulness"
+        type="menu"
+        defaultValue="10"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>CLEANING Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>CLEANING Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="quietModeFactor"
-        type="textfield"
-        defaultValue="0.40"
-        visibleBindingId="customModesEnabled"
+    <Field id="quietWatchfulness"
+        type="menu"
+        defaultValue="50"
+        visibleBindingId="customWatchfulness"
         visibleBindingValue="true">
-        <Label>QUIET Mode Brightness Multiplier</Label>
-        <Description>
-            Determines effective brightness for lighting targets
-        </Description>
+        <Label>QUIET Mode Watchfulness</Label>
+        <List>
+            <Option value="0">Standby</Option>
+            <Option value="10">Low-</Option>
+            <Option value="25">Low</Option>
+            <Option value="50">Medium</Option>
+            <Option value="75">High</Option>
+            <Option value="90">High+</Option>
+            <Option value="100">Maximum</Option>
+        </List>
     </Field>
 
-    <Field id="label_describe_hosemodes" type="label" 
+
+    <Field id="label_describe_housemodes" type="label" 
         alignWithControl="False">
-        <Label>House modes can diminish or amplify lighting choices to meet changing expectation.</Label>
+        <Label>House modes can diminish or amplify watchfulness as security expectations change.</Label>
     </Field>
 
-     <Field id="sepHouseModes" type="separator" >
+    <Field id="sepHouseModes" type="separator" >
     </Field>
 
 
@@ -265,7 +220,8 @@
     
     <Field id="createObserver"
         type="checkbox"
-        defaultValue="false">
+        defaultValue="false"
+        hidden="true">
         <Label>Create Observer Device in Indigo Device List</Label>
     </Field>
 
@@ -273,7 +229,8 @@
         type="textfield"
         visibleBindingId="createObserver"
         visibleBindingValue="true"
-        defaultValue="Roomify Observer">
+        hidden="true"
+        defaultValue="Securify Observer">
         <Label>Observer Name</Label>
     </Field>
 
@@ -281,31 +238,33 @@
         type="textfield"
         visibleBindingId="createObserver"
         visibleBindingValue="true"
-        hidden="false">
+        hidden="true">
         <Label>Observer Id</Label>
     </Field>
 
     <Field id="label_describe_observer" type="label" 
-        alignWithControl="False">
-        <Label>An observer device exposes Roomify runtime states as read-only values. Choose this option to have the plugin create an Indigo device for this purpose.</Label>
+        hidden="true"
+        alignWithControl="false">
+        <Label>An observer device exposes Securify runtime states as read-only values. Choose this option to have the plugin create an Indigo device for this purpose.</Label>
     </Field>
 
-    <Field id="sepObserver" type="separator" >
+    <Field id="sepObserver" type="separator" 
+            hidden="true">
     </Field>
 
     <!-- ===================================================== -->
-    <!-- SECURIFY COOPERATION -->
+    <!-- ROOMIFY COOPERATION -->
     <!-- ===================================================== -->
 
-    <Field id="securifyCooperationEnabled"
+    <Field id="roomifyCooperationEnabled"
         type="checkbox"
         defaultValue="false">
-        <Label>Cooperate with Securify (if available)</Label>
+        <Label>Cooperate with Roomify (if available)</Label>
     </Field>
 
 
     <!-- ===================================================== -->
-    <!-- LOGGING -->
+    <!-- LOGGING 1.0 -->
     <!-- ===================================================== -->
 
 
@@ -314,78 +273,71 @@
 
     <Field id="loggingEnabled"
         type="checkbox"
-        defaultValue="false">
-        <Label>Include Selected Logging Options:</Label>
+        defaultValue="true">
+        <Label>LOGGING ENABLED:</Label>
     </Field>
 
+    <!-- ===================================================== -->
+    <!-- LOGGING 2.0 -->
+    <!-- ===================================================== -->
 
 
-    <Field id="verboseLogging"
+    <Field id="logCheckpoints"
            type="checkbox"
         visibleBindingId="loggingEnabled"
         visibleBindingValue="true"
            defaultValue="false">
-        <Label>Verbose Logging Enabled</Label>
+        <Label> → Log Checkpoints: </Label>
     </Field>
 
-    <Field id="heartbeatLogging"
+    <Field id="logObservers"
            type="checkbox"
         visibleBindingId="loggingEnabled"
         visibleBindingValue="true"
            defaultValue="false">
-        <Label>Heartbeat Logging Enabled</Label>
+        <Label> → Log Observers: </Label>
     </Field>
 
-    <Field id="deviceEventLogging"
+    <Field id="logResponses"
            type="checkbox"
         visibleBindingId="loggingEnabled"
         visibleBindingValue="true"
            defaultValue="false">
-        <Label>Device Event Logging Enabled</Label>
+        <Label> → Log Responses: </Label>
     </Field>
 
-    <Field id="automationDecisionLogging"
+    <Field id="logHeartbeats"
            type="checkbox"
-            visibleBindingId="loggingEnabled"
-            visibleBindingValue="true"
+        visibleBindingId="loggingEnabled"
+        visibleBindingValue="true"
            defaultValue="false">
-        <Label>Automation Decision Logging Enabled</Label>
+        <Label> → Log Heartbeats: </Label>
     </Field>
 
-    <Field id="authorityDecisionLogging"
-           type="checkbox"
-            visibleBindingId="loggingEnabled"
-            visibleBindingValue="true"
-           defaultValue="false">
-        <Label>Authority Decision Logging Enabled</Label>
-    </Field>
-
-    <Field id="errorLogging"
+    <Field id="logErrors"
            type="checkbox"
         visibleBindingId="loggingEnabled"
         visibleBindingValue="true"
            defaultValue="true">
-        <Label>Error Logging Enabled</Label>
+        <Label> → Log Errors: </Label>
     </Field>
 
-
-    <Field id="label_describe_logging" type="label" 
-        alignWithControl="False">
-        <Label>Select Roomify logging detail..</Label>
+    <Field id="logIntegrations"
+           type="checkbox"
+            visibleBindingId="loggingEnabled"
+            visibleBindingValue="true"
+           defaultValue="false">
+        <Label> → Log Integrations: </Label>
     </Field>
 
-
- 
-    <Field id="houseMode"
-           type="textfield"
-           hidden="True"
-           defaultValue="DAY"
-           alignWithControl="true">
-        <Label>Default Duration (minutes)</Label>
-        <Description>
-            Maximum time lights may remain active
-        </Description>
+    <Field id="logOthers"
+           type="checkbox"
+        visibleBindingId="loggingEnabled"
+        visibleBindingValue="true"
+           defaultValue="false">
+        <Label> → Log Others: </Label>
     </Field>
+
 
 
 </PluginConfig>

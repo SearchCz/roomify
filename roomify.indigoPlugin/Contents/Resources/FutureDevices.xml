@@ -1,0 +1,23 @@
+        <Field id="focusActivator"
+            type="menu"
+            defaultValue="">
+            <Label>... and activates when Exposure Index Classification shows:</Label>
+            <List>
+                <Option value="">----------------</Option>
+                <Option value="allclear">[00] All Clear</Option>
+                <Option value="normal">[01-19]Normal</Option>
+                <Option value="noteworthy">[20-39] Noteworthy</Option>
+                <Option value="significant">[40-59] Significant</Option>
+                <Option value="serious">[60-79] Serious</Option>
+                <Option value="critical">[80-100] Critical</Option>
+                <Option value="">----------------</Option>
+                <Option value="classificationchanges">Exposure Classification Change:</Option>
+                <Option value="classchange">Any Classification Change</Option>
+                <Option value="classincrease">Classification Increased</Option>
+                <Option value="classdecrease">Clkassification Decreased</Option>
+                <Option value="scorechanges">Alert Score Change:</Option>
+                <Option value="scorechange">Any Score Change</Option>
+                <Option value="scoreincrease">Score Increase</Option>
+                <Option value="scoredecrease">Score Decrease</Option>
+            </List>
+        </Field>

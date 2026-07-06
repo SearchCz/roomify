@@ -5,13 +5,13 @@
 <dict>
 
     <key>CFBundleDisplayName</key>
-    <string>Roomify</string>
+    <string>Securify</string>
 
     <key>CFBundleIdentifier</key>
-    <string>com.searchcz.roomify</string>
+    <string>com.searchcz.securify</string>
 
     <key>PluginId</key>
-    <string>com.searchcz.roomify</string>
+    <string>com.searchcz.securify</string>
 
     <key>CFBundleVersion</key>
     <string>1.3.1</string>

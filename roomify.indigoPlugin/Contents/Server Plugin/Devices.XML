@@ -2,17 +2,17 @@
 <Devices>
 
 <!-- ===================================================== -->
-<!-- ROOMIFY OBSERVER -->
+<!-- SEURIFY OBSERVER -->
 <!-- ===================================================== -->
-<Device type="custom" id="roomifyObserver" name="Roomify Observer">
+<Device type="relay" id="securifyObserver" name="Securify Observer">
 
-    <Name>Roomify Observer</Name>
+    <Name>Securify Observer</Name>
 
     <metadata>
-        <product>Roomify</product>
+        <product>Securify</product>
         <author>Daniel Czewski</author>
         <version>1.0.0</version>
-        <license ref="Roomify Community License v1.0" />
+        <license ref="Securify Community License v1.0" />
     </metadata>
 
     <ConfigUI>
@@ -25,25 +25,460 @@
             <Label>Schema Version</Label>
         </Field>
 
-        <Field id="label1" type="label" alignText="left">
-            <Label>This device is owned and managed by the Roomify plugin.</Label>
+
+        <Field id="roomifyCooperationEnabled"
+            type="checkbox"
+            hidden="true"
+            defaultValue="False">
+        </Field>
+
+        <Field id="enabled"
+            type="checkbox"
+            defaultvalue="false">
+            <Label>Observer Enabled?</Label>
+        </Field>
+
+        <Field id="sep1a" type="separator">
+        </Field>
+
+
+        <Field id="label1a" type="label" alignText="left">
+            <Label>FOCUS</Label>
+        </Field>
+
+        <Field id="label1b" type="label" alignText="left">
+            <Label>* Determines which security condition activates this observer.</Label>
+        </Field>
+
+        <Field id="focusTarget"
+            type="menu"
+            defaultValue="-">
+            <Label>This observer pays attention to:</Label>
+                <List class="self" filter="stuff" method="focusTargetList"/>
+        </Field>
+
+        <Field id="focusActivator"
+            type="menu"
+            defaultValue="">
+            <Label>... and activates when Exposure shows:</Label>
+            <List>
+                <Option value="">----------------</Option>
+                <Option value="allclear">[00] All Clear</Option>
+                <Option value="normal">[01-19]Normal</Option>
+                <Option value="noteworthy">[20-39] Noteworthy</Option>
+                <Option value="significant">[40-59] Significant</Option>
+                <Option value="serious">[60-79] Serious</Option>
+                <Option value="critical">[80-100] Critical</Option>
+                <Option value="">----------------</Option>
+                <Option value="classificationchanges">Exposure Classification Change:</Option>
+                <Option value="classchange">Any Classification Change</Option>
+                <Option value="classincrease">Classification Increased</Option>
+                <Option value="classdecrease">Clkassification Decreased</Option>
+                <Option value="scorechanges">Alert Score Change:</Option>
+                <Option value="scorechange">Any Score Change</Option>
+                <Option value="scoreincrease">Score Increase</Option>
+                <Option value="scoredecrease">Score Decrease</Option>
+            </List>
+        </Field>
+
+
+        <Field id="sep12" type="separator">
+        </Field>
+
+        <Field id="label12" type="label" alignText="left">
+            <Label>RESPONSE CONDITION</Label>
+        </Field>
+
+        <Field id="label12a" type="label" alignText="left">
+            <Label>* Limits responses to activated observer until all prerequites are satisfied.</Label>
+        </Field>
+
+        <Field id="responseGated"
+            type="checkbox"
+            defaultValue="false">
+            <Label>Only Respond when Gate Conditions Are Met</Label>
+        </Field>
+ 
+        <Field id="responsePersistenceThreshold"
+            type="menu"
+            defaultValue="0"
+            visibleBindingId="responseGated"
+            visibleBindingValue="true">
+            <Label>*** Minimum Exposure Duration:</Label>
+            <List>
+                <Option value="0">Immediately</Option>
+                <Option value="1">1 Minute</Option>
+                <Option value="5">5 Minutes</Option>
+                <Option value="10">10 Minutes</Option>
+                <Option value="15">15 Minutes</Option>
+                <Option value="30">30 Minutes</Option>
+                <Option value="60">1 Hour</Option>
+                <Option value="120">2 Hours</Option>
+                <Option value="180">3 Hours</Option>
+                <Option value="240">4 Hours</Option>
+            </List>
+        </Field>
+
+        <Field id="responseGateDevice"
+            type="menu"
+            defaultValue="none"
+            visibleBindingId="responseGated"
+            visibleBindingValue="true">
+            <Label>*** Response Authorization Gate:</Label>
+            <List class="self" filter="stuff" method="deviceList"/>
+        </Field>
+
+        <Field id="sep2" type="separator">
         </Field>
 
         <Field id="label2" type="label" alignText="left">
-            <Label>It is a read-only observation surface that reports Roomify’s current global state.</Label>
+            <Label>RESPONSE POLICIES</Label>
         </Field>
 
-        <Field id="label3" type="label" alignText="left">
-            <Label>It is not configurable and must not be used for control or automation input.</Label>
+        <Field id="label2a" type="label" alignText="left">
+            <Label>* Defines the policies for observer response.</Label>
         </Field>
 
-        <Field id="label4" type="label" alignText="left">
-            <Label>It contains no actions or methods.</Label>
+
+        <Field id="log"
+                type="checkbox"
+                defaultValue="False"
+                hidden="false"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>Logfile:</Label>
         </Field>
 
-        <Field id="label5" type="label" alignText="left">
-            <Label>It does not participate in Roomify control logic.</Label>
+        <Field id="announce"
+                type="checkbox"
+                defaultValue="False"
+                hidden="false"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>Announcement:</Label>
         </Field>
+
+
+        <Field id="email"
+                type="checkbox"
+                defaultValue="False"
+                hidden="false"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>eMail:</Label>
+        </Field>
+
+        <Field id="emailDevice"
+            type="menu"
+            visibleBindingId="email"
+            visibleBindingValue="true">
+            <Label alignWithCOntrol="true">eMail+ Device</Label>
+            <List class="self" filter="stuff" method="getEmailDeviceList"/>
+        </Field>
+
+        <Field id="emailTo"
+            type="textfield"
+            visibleBindingId="email"
+            visibleBindingValue="true">
+            <Label alignWithCOntrol="true">To:</Label>
+        </Field>
+
+        <Field id="emailCC"
+            type="textfield"
+            visibleBindingId="email"
+            visibleBindingValue="true">
+            <Label alignWithControl="true">CC:</Label>
+        </Field>
+
+        <Field id="emailBCC"
+            type="textfield"
+            visibleBindingId="email"
+            visibleBindingValue="true">
+            <Label alignWithControl="true">BCC:</Label>
+        </Field>
+
+        <Field id="pushover"
+                type="checkbox"
+                defaultValue="False"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+               <Label>Pushover:</Label>
+        </Field>
+
+        <Field id="pushoverPriority"
+            type="menu"
+            visibleBindingId="pushover"
+            visibleBindingValue="true"
+            defaultValue="0">
+            <Label alignWithCOntrol="true">Pushover Priority</Label>
+            <List>
+                <Option value="-1">Low (silent)</Option>
+                <Option value="0">Normal</Option>
+                <Option value="1">High</Option>
+            </List>
+        </Field>
+
+        <Field id="pushoverSound"
+            type="menu"
+            visibleBindingId="pushover"
+            visibleBindingValue="true"
+            defaultValue="">
+            <Label alignWithControl="true">Pushover Sound</Label>
+            <List>
+                <Option value="">Default</Option>
+                <Option value="pushover">Pushover</Option>
+                <Option value="bike">Bike</Option>
+                <Option value="bugle">Bugle</Option>
+                <Option value="cashregister">Cash Register</Option>
+                <Option value="classical">Classical</Option>
+                <Option value="cosmic">Cosmic</Option>
+                <Option value="falling">Falling</Option>
+                <Option value="gamelan">Gamelan</Option>
+                <Option value="incoming">Incoming</Option>
+                <Option value="intermission">Intermission</Option>
+                <Option value="magic">Magic</Option>
+                <Option value="mechanical">Mechanical</Option>
+                <Option value="pianobar">Piano Bar</Option>
+                <Option value="siren">Siren</Option>
+                <Option value="spacealarm">Space Alarm</Option>
+                <Option value="tugboat">Tug Boat</Option>
+                <Option value="alien">Alien Alarm</Option>
+                <Option value="climb">Climb</Option>
+                <Option value="persistent">Persistent</Option>
+                <Option value="echo">Pushover Echo</Option>
+                <Option value="updown">Up Down</Option>
+                <Option value="vibrate">Vibrate Only</Option>
+                <Option value="none">None / Silent</Option>
+            </List>
+        </Field>
+
+        <Field id="pushoverDevice"
+            type="textfield"
+            visibleBindingId="pushover"
+            visibleBindingValue="true">
+            <Label alignWithCOntrol="true">Pushover Device(s)</Label> 
+        </Field>      
+
+
+        <Field id="storage"
+                type="checkbox"
+                defaultValue="False"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>Update Indigo variable:</Label>
+        </Field>
+
+        <Field id="storageSource"
+            type="menu"
+            defaultValue="none"
+            visibleBindingId="storage"
+            visibleBindingValue="true">
+            <Label alignWithCOntrol="true">Target Message Length</Label>
+            <List>
+                <Option value="compact">Compact Description</Option>
+                <Option value="medium">Medium Description</Option>
+                <Option value="full">Full Description</Option>
+            </List>
+
+        </Field>
+
+        <Field id="storageDestination"
+            type="menu"
+            defaultValue="none"
+            visibleBindingId="storage"
+            visibleBindingValue="true">
+            <Label alignWithCOntrol="true">Destination Variable</Label>
+            <List class="self" filter="stuff" method="getVariableList"/>
+        </Field>
+
+
+        <Field id="action"
+                type="checkbox"
+                defaultValue="False"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>Execute Indigo Action Group:</Label>
+        </Field>
+
+        <Field id="actionGroup"
+            type="menu"
+            defaultValue="none"
+            visibleBindingId="action"
+            visibleBindingValue="true">
+            <Label alignWithControl="true">Action Group</Label>
+            <List class="self" filter="stuff" method="getActionGroupList"/>
+        </Field>
+
+        <Field id="informify"
+                hidden="true"
+                type="checkbox"
+                defaultValue="False"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>Informify (future use):</Label>
+        </Field>
+
+        <Field id="informifyRecipients"
+            hidden="true"
+            type="list"
+            rows="6"
+            defaultValue=""
+            visibleBindingId="informify"
+            visibleBindingValue="true">
+            <Label alignWithControl="true">Recipients:</Label>
+            <List class="self" filter="stuff" method="getInformifyList"/>
+        </Field>
+
+
+        <Field id="sep9" type="separator">
+        </Field>
+
+        <Field id="label3a" type="label" alignText="left"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+            <Label>PERSISTENCE</Label>
+        </Field>
+
+        <Field id="label3b" type="label" alignText="left"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+            <Label>* Determines how reminders of this condition are to be handled</Label>
+        </Field>
+
+
+        <Field id="repeat"
+                type="checkbox"
+                defaultValue="False"
+                hidden="false"
+                visibleBindingId="enabled"
+                visibleBindingValue="true">
+                <Label>Repeat notifications while this observation persists:</Label>
+        </Field>
+
+        <Field id="repeatMax"
+            type="menu"
+            defaultValue="2"
+            visibleBindingId="repeat"
+            visibleBindingValue="true">
+            <Label>Maximum number of reminders to issue for this observation:</Label>
+            <List>
+                <Option value="1">1</Option>
+                <Option value="2">2</Option>
+                <Option value="3">3</Option>
+                <Option value="4">4</Option>
+                <Option value="5">5</Option>
+                <Option value="10">10</Option>
+                <Option value="100">100</Option>
+            </List>
+        </Field>
+
+        <Field id="repeatDelay1"
+            type="menu"
+            defaultValue="15"
+            visibleBindingId="repeat"
+            visibleBindingValue="true">
+            <Label>Issue first reminder after:</Label>
+            <List>
+                <Option value="1">1 Minute</Option>
+                <Option value="5">5 Minutes</Option>
+                <Option value="10">10 Minutes</Option>
+                <Option value="15">15 Minutes</Option>
+                <Option value="30">30 Minutes</Option>
+                <Option value="60">1 Hour</Option>
+                <Option value="120">2 Hours</Option>
+                <Option value="180">3 Hours</Option>
+                <Option value="240">4 Hours</Option>
+            </List>
+        </Field>
+
+        <Field id="repeatDelayN"
+            type="menu"
+            defaultValue="15"
+            visibleBindingId="repeat"
+            visibleBindingValue="true">
+            <Label>Issue additional reminders every:</Label>
+            <List>
+                <Option value="1">Every 1 Minutes</Option>
+                <Option value="5">Every 5 Minutes</Option>
+                <Option value="10">Every 10 Minutes</Option>
+                <Option value="15">Every 15 Minutes</Option>
+                <Option value="30">Every 30 Minutes</Option>
+                <Option value="60">Every Hour</Option>
+                <Option value="120">Every 2 Hours</Option>
+                <Option value="180">Every 3 Hours</Option>
+                <Option value="240">Every 4 Hours</Option>
+            </List>
+        </Field>
+
+
+
+
+        <Field id="labelQ1" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ2" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ3" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ4" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ5" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ6" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ7" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ8" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ1a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ2a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ3a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ4a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ5a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQa6" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ7a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+        <Field id="labelQ8a" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
+
+
+
     </ConfigUI>
 
     <States>
@@ -53,29 +488,40 @@
             <ControlPageLabel>House Mode</ControlPageLabel>
         </State>
 
-        <State id="roomDormancyCutoffEnabled">
+        <State id="watchfulness">
             <ValueType>String</ValueType>
-            <TriggerLabel>Room Dormancy Cutoff Enabled</TriggerLabel>
-            <ControlPageLabel>Room Dormancy Cutoff Enabled</ControlPageLabel>
+            <TriggerLabel>Watchfulness</TriggerLabel>
+            <ControlPageLabel>Watchfulness</ControlPageLabel>
         </State>
 
-
-        <State id="occupancyAutomationEnabled">
-            <ValueType>String</ValueType>
-            <TriggerLabel>Room Occupancy Automation Enabled</TriggerLabel>
-            <ControlPageLabel>RoomOccupancy Automation Enabled</ControlPageLabel>
+        <State id="vulnerabilityCount">
+            <ValueType>Number</ValueType>
+            <TriggerLabel>Vulnerability Count</TriggerLabel>
+            <ControlPageLabel>Vulnerability Count</ControlPageLabel>
         </State>
 
-        <State id="roomAutomationCalmingPeriod">
-            <ValueType>String</ValueType>
-            <TriggerLabel>Room Automation Calming Period</TriggerLabel>
-            <ControlPageLabel>Room Automation Calming Period</ControlPageLabel>
+        <State id="breachCount">
+            <ValueType>Number</ValueType>
+            <TriggerLabel>Breach Count</TriggerLabel>
+            <ControlPageLabel>Breach Count</ControlPageLabel>
         </State>
 
-        <State id="houseModesEnabled">
+        <State id="vulnerabilityMax">
+            <ValueType>Number</ValueType>
+            <TriggerLabel>Vulnerability Max</TriggerLabel>
+            <ControlPageLabel>Vulnerability Max</ControlPageLabel>
+        </State>
+
+        <State id="breachMax">
+            <ValueType>Number</ValueType>
+            <TriggerLabel>Breach Max</TriggerLabel>
+            <ControlPageLabel>Breach Max</ControlPageLabel>
+        </State>
+
+        <State id="alertClassification">
             <ValueType>String</ValueType>
-            <TriggerLabel>House Modes Enabled</TriggerLabel>
-            <ControlPageLabel>House Modes Enabled</ControlPageLabel>
+            <TriggerLabel>Current Alert Classification</TriggerLabel>
+            <ControlPageLabel>Current Alert Classification</ControlPageLabel>
         </State>
 
         <State id="lastPublishTimestamp">
@@ -84,29 +530,43 @@
             <ControlPageLabel>Last Publish Time</ControlPageLabel>
         </State>
 
+        <State id="responseAuthorized">
+            <ValueType>Boolean</ValueType>
+            <TriggerLabel>Responses Authorized</TriggerLabel>
+            <ControlPageLabel>Responses Authorized</ControlPageLabel>
+        </State>
+
+        <State id="activationEpoch">
+            <ValueType>Number</ValueType>
+            <TriggerLabel>Activation Epoch</TriggerLabel>
+            <ControlPageLabel>Activation Epoch</ControlPageLabel>
+        </State>
+
+
+
     </States>
 
 </Device>
 <!-- ===================================================== -->
-<!-- ROOMIFY ROOM -->
+<!-- SECURIFY CHECKPOINT -->
 <!-- ===================================================== -->
 
 
-    <Device type="dimmer" id="roomifyRoom" name="Roomify Room">
+    <Device type="dimmer" id="securifyCheckpoint" name="Securify Checkpoint">
 
-        <Name>Roomify Room</Name>
+        <Name>Securify Checkpoint</Name>
 
         <metadata>
-            <product>Roomify</product>
+            <product>Securify</product>
             <author>Daniel Czewski</author>
             <version>1.0.0</version>
-            <license ref="Roomify Community License v1.0" />
+            <license ref="Securify Community License v1.0" />
         </metadata>
 
         <ConfigUI>
 
             <!-- ===================================================== -->
-            <!-- ROOM BEHAVIOR -->
+            <!-- CHECKPOINT BEHAVIOR -->
             <!-- ===================================================== -->
 
             <Field id="schemaVersion"
@@ -116,455 +576,207 @@
                 <Label>Schema Version</Label>
             </Field>
 
-
+            <Field id="roomifyCooperationEnabled"
+                type="checkbox"
+                defaultValue="False"
+                hidden="True">
+                <Label>Roomify Cooperation Enabled</Label>
+            </Field>
 
             <Field id="label1" type="label" alignText="center">
-                <Label>Roomify Definition</Label>
+                <Label>Securify Checkpoint Definition</Label>
             </Field>
 
-            <Field id="roomType" type="menu">
-                <Label>Room Type</Label>
-                <Description>Select the functional type of this room.</Description>
-
+            <Field id="checkpointZone" type="menu">
+                <Label>Zone/Locus</Label>
+                <Description>Select the locus of this checkpoint.</Description>
                 <List>
-                    <Option value="BEDROOM">Bedroom</Option>
-                    <Option value="BATHROOM">Bathroom</Option>
-                    <Option value="CLOSET">Closet</Option>
-                    <Option value="DININGROOM">Dining Room</Option>
-                    <Option value="GARAGE">Garage</Option>
-                    <Option value="HALLWAY">Hallway</Option>
-                    <Option value="STAIRWAY">Stairway</Option>
-                    <Option value="KITCHEN">Kitchen</Option>
-                    <Option value="LIVINGROOM">Living Room</Option>
-                    <Option value="MEDIAROOM">Media Room</Option>
-                    <Option value="OFFICE">Office</Option>
-                    <Option value="PATIO">Patio</Option>
-                    <Option value="UTILITY">Utility</Option>
+                    <Option value="FAR">Far Perimeter</Option>
+                    <Option value="NEAR">Near Perimeter</Option>
+                    <Option value="PREMISE">Premise</Option>
                 </List>
             </Field>
 
-            <Field id="controlledDevices"
-                type="list"
-                multiple="true"
-                rows="8">
-                <Label>Controlled Devices</Label>
-                <List class="indigo.devices"/>
-            </Field>
-
-
-            <Field id="roomDormancyCutoffEnabled"
-                type="checkbox"
-                hidden="true"
-                defaultValue="true">
-                <Label>Room Dormancy Cutoff Enabled (hidden)</Label>
-            </Field>
-
-            <Field id="occupancyAutomationEnabled"
-                type="checkbox"
-                hidden="true"
-                defaultValue="true">
-                <Label>Room Occupancy Automations Enabled (hidden)</Label>
-            </Field>
-
-            <Field id="phasedLightingEnabled"
-                type="checkbox"
-                hidden="true"
-                defaultValue="true">
-                <Label>Enable Phased Lighting</Label>
-            </Field>
-
-            <Field type="separator" id="sep0" 
-                visibleBindingId="roomDormancyCutoffEnabled"
-                visibleBindingValue="true"
-               alignText="center">
-            </Field>
-            
-
-
-            <Field id="label0" type="label" alignText="center"
-                visibleBindingId="roomDormancyCutoffEnabled"
-                visibleBindingValue="true">
-                <Label>Room Dormancy / Latency Cutoff</Label>
-            </Field>
-
-            <Field id="roomDormancyCutoffActive"
-                type="checkbox"
-                defaultValue="false"
-                visibleBindingId="roomDormancyCutoffEnabled"
-                visibleBindingValue="true">
-                <Label>Activate</Label>
-            </Field>
-
-            <Field id="roomDormancyCutoff"
+           <Field id="importance"
                 type="menu"
-                defaultValue=""
-                visibleBindingId="roomDormancyCutoffActive"
-                visibleBindingValue="true">
-                <Label>Allowed Dormancy Duration</Label>
-
+                defaultValue="50">
+                <Label>Base Importance</Label>
                 <List>
-                    <Option value="">Follow Global Default</Option>
-                    <Option value="2">2 Minutes</Option>
-                    <Option value="30">30 Minutes</Option>
-                    <Option value="60">60 Minutes</Option>
-                    <Option value="90">90 Minutes</Option>
-                    <Option value="120">2 Hours</Option>
-                    <Option value="180">3 Hours</Option>
-                    <Option value="240">4 Hours</Option>
-                    <Option value="300">5 Hours</Option>
-                    <Option value="360">6 Hours</Option>
-                    <Option value="540">9 Hours</Option>
-                    <Option value="720">12 Hours</Option>
-                    <Option value="1080">18 Hours</Option>
-                    <Option value="1440">24 Hours</Option>
+                    <Option value="0">None/Standby</Option>
+                    <Option value="10">Low-</Option>
+                    <Option value="25">Low</Option>
+                    <Option value="50">Medium</Option>
+                    <Option value="75">High</Option>
+                    <Option value="90">High+</Option>
+                    <Option value="120">Maximum</Option>
                 </List>
-
-                <Description>
-                    Time before this room is subject to dormancy cutoff
-                </Description>
+               
             </Field>
 
-            <Field type="separator" id="sep1" 
-                visibleBindingId="roomDormancyCutoffEnabled"
-                visibleBindingValue="true">
+           <Field id="escalationRate"
+                type="menu"
+                defaultValue="0">
+                <Label>Temporal Effect:</Label>
+                <List>
+                    <Option value="-10">-10 points per minute</Option>
+                    <Option value="-9">-9 points per minute</Option>
+                    <Option value="-8">-8 points per minute</Option>
+                    <Option value="-7">-7 points per minute</Option>
+                    <Option value="-6">-6 points per minute</Option>
+                    <Option value="-5">-5 points per minute</Option>
+                    <Option value="-4">-4 points per minute</Option>
+                    <Option value="-3">-3 points per minute</Option>
+                    <Option value="-2">-2 points per minute</Option>
+                    <Option value="-1">-1 points per minute</Option>
+                    <Option value="0">None</Option>
+                    <Option value="1">+1 points per minute</Option>
+                    <Option value="2">+2 points per minute</Option>
+                    <Option value="3">+3 points per minute</Option>
+                    <Option value="4">+4 points per minute</Option>
+                    <Option value="5">+5 points per minute</Option>
+                    <Option value="6">+6 points per minute</Option>
+                    <Option value="7">+7 points per minute</Option>
+                    <Option value="8">+8 points per minute</Option>
+                    <Option value="9">+9 points per minute</Option>
+                    <Option value="10">+10 points per minute</Option>
+                </List>
             </Field>
 
-
-            <Field type="label" id="label1b" alignText="center"
-                visibleBindingId="occupancyAutomationEnabled"
+            <Field id="roomifyRoomId"
+                type="menu"
+                defaultValue="none"
+                visibleBindingId="roomifyCooperationEnabled"
                 visibleBindingValue="true">
-                <Label>Occupancy-Triggered Automation</Label>
+                <Label>Security Status → Roomify Room</Label>
+                <List class="self" filter="stuff" method="roomDeviceList"/>
             </Field>
 
-            <Field id="roomOccupancyAutomationActive"
-                type="checkbox"
-                defaultValue="false"
-                visibleBindingId="occupancyAutomationEnabled"
-                visibleBindingValue="true">
-                <Label>Activate</Label>
+            <Field id="sepHouseModes" type="separator" >
             </Field>
 
-            <Field id="occupancyIndicators"
-                type="list"
-                multiple="true"
-                rows="8"
-                visibleBindingId="roomOccupancyAutomationActive"
-                visibleBindingValue="true">
-                <Label>Occupancy Indicators</Label>
-                <List class="indigo.devices"/>
+            <Field id="checkpointType" type = "menu" defaultValue="SELECT">
+                <Label>Checkpoint Type</Label>
+                <Description>Select the device type of this checkpoint.</Description>
+                <List class="self" filter="stuff" method="checkpointTypes"/>
             </Field>
 
-            <Field id="initialBrightness"
-                type="textfield"
-                defaultValue="80"
-                visibleBindingId="roomOccupancyAutomationActive"
-                visibleBindingValue="true">
-                <Label>Initial Brightness (%)</Label>
+            <Field id="roomifyOccupancyId"
+                type="menu"
+                defaultValue="none"
+                visibleBindingId="checkpointType"
+                visibleBindingValue="OCCUPANCY">
+                <Label>Roomify Occupancy → Securify</Label>
+                <List class="self" filter="stuff" method="roomDeviceList"/>
             </Field>
 
-            <Field id="initialTimeout"
-                type="textfield"
-                defaultValue="5"
-                visibleBindingId="roomOccupancyAutomationActive"
-                visibleBindingValue="true">
-                <Label>Duration (minutes)</Label>
-            </Field>
-
-
-            <Field id="showAdvancedSettings"
-                type="checkbox"
-                defaultValue="false"
-                visibleBindingId="roomOccupancyAutomationActive"
-                visibleBindingValue="true">
-                <Label>Show Advanced Settings</Label>
-            </Field>
-
-            <Field id="occupancyAuthority" type="menu"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Occupancy Authority</Label>
+            <Field id="doorSensor" type="menu"
+                visibleBindingId="checkpointType"
+                visibleBindingValue="DOOR">
+                <Label>Open/Close Sensor</Label>
                 <List class="self" filter="stuff" method="deviceList"/>
             </Field>
 
-            <Field id="vacancyAuthority" type="menu"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Vacancy Authority</Label>
+            <Field id="doorLock" type="menu"
+                visibleBindingId="checkpointType"
+                visibleBindingValue="DOOR">
+                <Label>Lock</Label>
                 <List class="self" filter="stuff" method="deviceList"/>
             </Field>
 
-
-            <Field id="delayedBrightness"
-                type="textfield"
-                defaultValue="60"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Delayed Brightness (%)</Label>
-            </Field>
-
-            <Field id="delayedMinutes"
-                type="textfield"
-                defaultValue="5"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Delay minutes:</Label>
-            </Field>
-
-            <Field id="outroBrightness"
-                type="textfield"
-                defaultValue="20"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Outro Brightness (%)</Label>
-            </Field>
-
-            <Field id="outroMinutes"
-                type="textfield"
-                defaultValue="2"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Outro Minutes</Label>
-            </Field>
-
-
-            <Field id="label3" type="label" alignText="center"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">>
-                <Label>Execution Boundaries</Label>
-            </Field>
-
-            <Field id="automationGates" 
-                type="list"
-                multiple="true"
-                rows="8"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Optional Gating Device(s)</Label>
+            <Field id="motionSensor" type="menu"
+                visibleBindingId="checkpointType"
+                visibleBindingValue="MOTION,FAULT">
+                <Label>Fault Sensor</Label>
                 <List class="self" filter="stuff" method="deviceList"/>
             </Field>
+        <Field id="labelQ1" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
 
-            <Field id="autoOffBrightness"
-                type="menu"
-                defaultValue="0"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Brightness to invoke when OFF is automated</Label>
+        <Field id="labelQ2" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
 
-                <List>
-                    <Option value="0">None. Off=Off</Option>
-                    <Option value="5">5%</Option>
-                    <Option value="10">10%</Option>
-                    <Option value="15">15%</Option>
-                    <Option value="20">20%</Option>
-                    <Option value="25">25%</Option>
-                </List>
-            </Field>
+        <Field id="labelQ3" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
 
-            <Field id="autoBrightnessLowLimit"
-                type="menu"
-                defaultValue="Default"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Lower limit on auto brightness</Label>
+        <Field id="labelQ4" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
 
-                <List>
-                    <Option value="Default">Defer to Room Type</Option>
-                    <Option value="0">5%</Option>
-                    <Option value="5">5%</Option>
-                    <Option value="10">10%</Option>
-                    <Option value="15">15%</Option>
-                    <Option value="20">20%</Option>
-                    <Option value="30">30%</Option>
-                    <Option value="40">40%</Option>
-                    <Option value="50">50%</Option>
-                    <Option value="60">60%</Option>
-                    <Option value="70">70%</Option>
-                    <Option value="80">80%</Option>
-                    <Option value="90">90%</Option>
-                    <Option value="100">100%</Option>
-                </List>
-            </Field>
+        <Field id="labelQ5" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
 
-            <Field id="autoBrightnessHighLimit"
-                type="menu"
-                defaultValue="Default"
-                visibleBindingId="showAdvancedSettings"
-                visibleBindingValue="true">
-                <Label>Upper limit on auto brightness</Label>
-
-                <List>
-                    <Option value="Default">Defer to Room Type</Option>
-                    <Option value="0">0%</Option>
-                    <Option value="5">5%</Option>
-                    <Option value="10">10%</Option>
-                    <Option value="15">15%</Option>
-                    <Option value="20">20%</Option>
-                    <Option value="30">30%</Option>
-                    <Option value="40">40%</Option>
-                    <Option value="50">50%</Option>
-                    <Option value="60">60%</Option>
-                    <Option value="70">70%</Option>
-                    <Option value="80">80%</Option>
-                    <Option value="90">90%</Option>
-                    <Option value="100">100%</Option>
-                </List>
-            </Field>
-
-
-            <Field type="separator" id="sep4" >
-                visibleBindingId="roomOccupancyAutomationActive"
-                visibleBindingValue="true" alignText="center">
-            </Field>
+        <Field id="labelQ6" type="label" alignText="center">
+            <Label> </Label>
+        </Field>
 
 
 
         </ConfigUI>
 
         <States>
-            <State id="brightness">
+            <State id="vulnerabilityScore">
                 <ValueType>Number</ValueType>
-                <TriggerLabel>brightness</TriggerLabel>
-                <ControlPageLabel>brightness</ControlPageLabel>
+                <TriggerLabel>Vulnerability Score</TriggerLabel>
+                <ControlPageLabel>Vulnerability Score</ControlPageLabel>
             </State>
 
-            <State id="phasedLightingEnabled">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Phased</TriggerLabel>
-                <ControlPageLabel>Phased</ControlPageLabel>
-            </State>
-
-            <State id="onState">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>On/Off</TriggerLabel>
-                <ControlPageLabel>On/Off</ControlPageLabel>
-            </State>
-
-            <State id="initialBrightness">
+            <State id="vulnerabilityEpoch">
                 <ValueType>Number</ValueType>
-                <TriggerLabel>Initial Brightness</TriggerLabel>
-                <ControlPageLabel>Initial Brightness</ControlPageLabel>
+                <TriggerLabel>Vulnerability Epoch</TriggerLabel>
+                <ControlPageLabel>Vulnerability Epoch</ControlPageLabel>
             </State>
 
-            <State id="delayedBrightness">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Delayed Brightness</TriggerLabel>
-                <ControlPageLabel>Delayed Brightness</ControlPageLabel>
-            </State>
-
-            <State id="outroBrightness">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Outro Brightness</TriggerLabel>
-                <ControlPageLabel>Outro Brightness</ControlPageLabel>
-            </State>
-
-            <State id="lightingPhase">
+            <State id="vulnerabilityDatetime">
                 <ValueType>String</ValueType>
-                <TriggerLabel>Lighting Phase</TriggerLabel>
-                <ControlPageLabel>Lighting Phase</ControlPageLabel>
-            </State>            
-
-            <State id="occupied">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Occupied</TriggerLabel>
-                <ControlPageLabel>Occupied</ControlPageLabel>
+                <TriggerLabel>Vulnerability Datetime</TriggerLabel>
+                <ControlPageLabel>Vulnerability Datetime</ControlPageLabel>
             </State>
 
-            <State id="roomOccupancyAutomationActive">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Automations Active</TriggerLabel>
-                <ControlPageLabel>Automations Active</ControlPageLabel>
-            </State>
-
-            <State id="automationsAuthorized">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Automations Authorized</TriggerLabel>
-                <ControlPageLabel>Automations Authorized</ControlPageLabel>
-            </State>
-
-            <State id="roomDormancyCutoffActive">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Room Dormancy Cutoff Active</TriggerLabel>
-                <ControlPageLabel>Room Dormancy Cutoff Active</ControlPageLabel>
-            </State>
-
-
-            <State id="watchdogMinutes">
+            <State id="alertScore">
                 <ValueType>Number</ValueType>
-                <TriggerLabel>Watchdog Minutes</TriggerLabel>
-                <ControlPageLabel>Watchdog Minutes</ControlPageLabel>
+                <TriggerLabel>Current Alert Score</TriggerLabel>
+                <ControlPageLabel>Current Alert Score</ControlPageLabel>
             </State>
 
-            <State id="watchdogCutoff">
+            <State id="priorAlertScore">
                 <ValueType>Number</ValueType>
-                <TriggerLabel>Watchdog Cutoff</TriggerLabel>
-                <ControlPageLabel>Watchdog Cutoff</ControlPageLabel>
+                <TriggerLabel>Prior Alert Score</TriggerLabel>
+                <ControlPageLabel>Prior Alert Score</ControlPageLabel>
             </State>
 
-            <State id="watchdogCutoffDisplay">
+            <State id="alertClassification">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Current Alert Classification UI</TriggerLabel>
+                <ControlPageLabel>Current Alert Classification UI</ControlPageLabel>
+            </State>
+
+            <State id="priorAlertClassification">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Prior Alert Clasification</TriggerLabel>
+                <ControlPageLabel>Prior Alert Classification</ControlPageLabel>
+            </State>
+
+
+            <State id="alertClassificationUI">
                 <ValueType>String</ValueType>
-                <TriggerLabel>Watchdog Cutoff Display</TriggerLabel>
-                <ControlPageLabel>Watchdog Cutoff Display s</ControlPageLabel>
+                <TriggerLabel>Current Alert Classification</TriggerLabel>
+                <ControlPageLabel>Current Alert Classification</ControlPageLabel>
             </State>
 
-            <State id="occupancyCutoff">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Occupancy Cutoff</TriggerLabel>
-                <ControlPageLabel>Occupancy Cutoff</ControlPageLabel>
-            </State>
-
-            <State id="occupancyCutoffUI">
+            <State id="alertScoreDelta">
                 <ValueType>String</ValueType>
-                <TriggerLabel>Occupancy Cutoff Display</TriggerLabel>
-                <ControlPageLabel>Occupancy Cutoff Display</ControlPageLabel>
+                <TriggerLabel>Alert Score Delta</TriggerLabel>
+                <ControlPageLabel>Alert Score Delta</ControlPageLabel>
             </State>
 
-            <State id="automationState">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Automation State</TriggerLabel>
-                <ControlPageLabel>Automation State</ControlPageLabel>
-            </State>
-
-            <State id="automationStateUI">
+            <State id="alertClassDelta">
                 <ValueType>String</ValueType>
-                <TriggerLabel>Automation State</TriggerLabel>
-                <ControlPageLabel>Automation State UI</ControlPageLabel>
-            </State>
-
-            <State id="delayedLightingStarttime">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Delayed LIgthing Startup</TriggerLabel>
-                <ControlPageLabel>Delayed Lighting Startup</ControlPageLabel>
-            </State>
-
-            <State id="delayedLightingStarttimeUI">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Delayed Lighting Start UI</TriggerLabel>
-                <ControlPageLabel>Delayed LIghting Start UI</ControlPageLabel>
-            </State>
-
-
-            <State id="outroLightingStarttime">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Outrto Startup</TriggerLabel>
-                <ControlPageLabel>Outro Startup</ControlPageLabel>
-            </State>
-
-            <State id="outroLightingStarttimeUI">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Outro Start UI</TriggerLabel>
-                <ControlPageLabel>Outro Start UI</ControlPageLabel>
-            </State>
-
-            <State id="minutesRemaining">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Minutes Reamining</TriggerLabel>
-                <ControlPageLabel>Minutes Remaining</ControlPageLabel>
-            </State>
-
-            <State id="activeModifier">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Active Modifier</TriggerLabel>
-                <ControlPageLabel>Active Modifier</ControlPageLabel>
+                <TriggerLabel>Alert Class Delta</TriggerLabel>
+                <ControlPageLabel>Alert Class Delta</ControlPageLabel>
             </State>
 
             <State id="nextEvaluationTime">
@@ -591,49 +803,6 @@
                 <ControlPageLabel>Re-evaluaiton Class</ControlPageLabel>
             </State>
 
-            <State id="authorityChangePriorState">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Authority Prior State</TriggerLabel>
-                <ControlPageLabel>Authority Prior State</ControlPageLabel>
-            </State>
-
-            <State id="authorityChangeNewState">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Authority New State</TriggerLabel>
-                <ControlPageLabel>Authority New State</ControlPageLabel>
-            </State>
-
-            <State id="authorityChangeInitiator">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Authority Change Initiator</TriggerLabel>
-                <ControlPageLabel>Authority Change Initiator</ControlPageLabel>
-            </State>
-
-            <State id="authorityChangeTimestamp">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Authority Change Timestamp</TriggerLabel>
-                <ControlPageLabel>Authority Change Timestamp</ControlPageLabel>
-            </State>
-
-            <State id="authorityChangeEpoch">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Authority Change Epoch</TriggerLabel>
-                <ControlPageLabel>Authority Change Epoch</ControlPageLabel>
-            </State>
-
-            <State id="automationGateStatus">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Automation Gate Status</TriggerLabel>
-                <ControlPageLabel>Automation Gate Status</ControlPageLabel>
-            </State>
-
-            <State id="autoOffBrightness">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Auto-Off Brightness</TriggerLabel>
-                <ControlPageLabel>Auto-Off Brightness</ControlPageLabel>
-            </State>
-
-
             <State id="auditBurden">
                 <ValueType>Number</ValueType>
                 <TriggerLabel>Audit Burden</TriggerLabel>
@@ -650,36 +819,6 @@
                 <ValueType>Number</ValueType>
                 <TriggerLabel>Audit Attempts Remaining</TriggerLabel>
                 <ControlPageLabel>Audit Attempts Remaining</ControlPageLabel>
-            </State>
-
-            <State id="cutoffCyclesRemaining">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Cutoff Cycles Remaining</TriggerLabel>
-                <ControlPageLabel>Cutoff Cycles Remaining</ControlPageLabel>
-            </State>
-
-            <State id="cutoffCyclesIncrement">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Cutoff Increment</TriggerLabel>
-                <ControlPageLabel>Cutoff Increment</ControlPageLabel>
-            </State>
-
-            <State id="alertScore">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Alert Score</TriggerLabel>
-                <ControlPageLabel>Alert Score</ControlPageLabel>
-            </State>
-
-            <State id="alertClassification">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Alert Classification</TriggerLabel>
-                <ControlPageLabel>Alert Classification</ControlPageLabel>
-            </State>
-
-            <State id="alertClassificationUI">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Alert Classification (UI)</TriggerLabel>
-                <ControlPageLabel>Alert Classification (UI)</ControlPageLabel>
             </State>
 
 

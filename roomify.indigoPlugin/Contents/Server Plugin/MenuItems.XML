@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<MenuItems>
+    <MenuItem id="debugSeperator" type="separator" />
+    <MenuItem id="evaluateAll" uiPath="Checkpoint Actions">
+        <Name>Evaluiate All Checkpoints</Name>
+        <CallbackMethod>evaluateAllCheckpoints</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="showCheckpoints" uiPath="Checkpoint Actions">
+        <Name>Expose Checkpoint Cache</Name>
+        <CallbackMethod>dumpCheckpointCache</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="showObservers" uiPath="Checkpoint Actions">
+        <Name>Expose Observer Cache</Name>
+        <CallbackMethod>dumpObserverCache</CallbackMethod>
+    </MenuItem>
+</MenuItems>
