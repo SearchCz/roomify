@@ -1,3 +1,6 @@
+## 1.3.3
+- Fixed startup bug. Please update if you are on v 1.3.2
+
 ## 1.3.2
 - Updated to coordinate with Securify plugin
 
