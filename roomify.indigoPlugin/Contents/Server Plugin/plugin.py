@@ -490,11 +490,11 @@ class Plugin(indigo.PluginBase):
         #this is the entry point for roomify to suggest we adopt a new housemode
         #since the roomify plugin is not a dependency, we will only do this if 
         #securify allows this cooperation 
-        self.suspendCrossTalk = True
+        self.suspendCrosstalk = True
         if self.securifyCooperationEnabled:
             newMode = action.pluginTypeId.removeprefix("set").removesuffix("Suggested").upper()
             self.debugLog(f"XTALK: Accepting suggested house mode {newMode}")
-            self.suspendCrossTalk = True
+            self.suspendCrosstalk = True
             self.setHouseMode(newMode)
 
     def shareHouseModeX(self, action):
@@ -506,7 +506,7 @@ class Plugin(indigo.PluginBase):
             self.debugLog(f"XTALK: fetching house mode from Securify")
             try:
                 newMode = self.securifyPlugin.executeAction("shareHouseMode")
-                self.suspendCrossTalk = True
+                self.suspendCrosstalk = True
                 self.setHouseMode(newMode)
             except:
                 self.debugLog("XTALK: Error fetching house mode from Securify")
@@ -517,22 +517,22 @@ class Plugin(indigo.PluginBase):
 
         oldMode = self.houseMode
 
-        self.debugLog(f"HouseMode change requested: {oldMode} → {newMode} ... suspend xtalk = {self.suspendCrossTalk}")
+        self.debugLog(f"HouseMode change requested: {oldMode} → {newMode} ... suspend xtalk = {self.suspendCrosstalk}")
 
         if oldMode == newMode:
             self.deviceLog(f"HouseMode already {newMode}, ignoring")
-            self.suspendCrossTalk = False
+            self.suspendCrosstalk = False
             return
 
-        self.deviceLog(f"HouseMode change: {oldMode} → {newMode} suspend={self.suspendCrossTalk}")
+        self.deviceLog(f"HouseMode change: {oldMode} → {newMode} suspend={self.suspendCrosstalk}")
         self.pluginPrefs["houseMode"] = newMode
         self.houseMode = newMode
         self.debugLog(f"NEW ROOMIFY HOUSEMODE={self.houseMode}")
 
-        if self.securifyCooperationEnabled and ( not self.suspendCrossTalk  ):
+        if self.securifyCooperationEnabled and ( not self.suspendCrosstalk  ):
             self.suggestHouseMode(newMode)
 
-        self.suspendCrossTalk  = False
+        self.suspendCrosstalk  = False
 
         # trigger side effects
         self.publishToAllObservers()
@@ -997,6 +997,7 @@ class Plugin(indigo.PluginBase):
     # runs when plugin loads. good for initializing variables, loading prefs, etc. but not for doing anything with devices since they might not be loaded yet (that's deviceStartComm)
     def startup(self):
         self.suspendCrosstalk = False
+
         self.houseMode = ""
 
         #self.logger.info(indigo.dimmer.setBrightness.__doc__)
@@ -2486,7 +2487,6 @@ class Plugin(indigo.PluginBase):
                 if not self.isDivergent(dev, room_is_on, room_brightness):
                     continue
 
-                divergence_count += 1
 
                 self.recordRoomifyIntent(dev, room_is_on, room_brightness)
                 # stuffs expected outcome into canonical
@@ -2510,9 +2510,21 @@ class Plugin(indigo.PluginBase):
                             indigo.dimmer.setBrightness(dev_id, int(room_brightness), delay)
                     else:
                         indigo.device.turnOn(dev_id)
+
+                    # 2026.07.07 - trying not to treat every change as a divergence  
+                    #              1) no longer comsidering the possibility of divergence on the tail end of an off command
+                    #              2) giving the light a change to report compliance with the request
+                    #
+                    # I might also need something on the event side to recognize when a controlled device reports 
+                    # allignment with romify intent (rather than just polling for it later at some arbitrary moment)
+                    #self.sleep(0.25)
+                    if self.isDivergent(dev, room_is_on, room_brightness):
+                        divergence_count += 1
                 else:
                     indigo.device.turnOff(dev_id,delay)
-                continue
+
+
+
 #                self.sleep(0.25)
 
             #DIVERGENCE HANDLING
@@ -2530,9 +2542,14 @@ class Plugin(indigo.PluginBase):
                     auditAttemptsRemaining -= 1
                     rt["auditPending"] = True
                     rt["auditAttemptsRemaining"] = auditAttemptsRemaining
-#                    room.updateStateOnServer("auditPending", True)
-#                    room.updateStateOnServer("auditAttemptsRemaining", auditAttemptsRemaining)
+              
+                    #old code ... i used to let heartbeat handle this. i think i might try recursion on a 1 second delay ?
                     self.scheduleRoomEvaluaiton(room, time.time()+self.globalRoomAutomationCalmingPeriod, room.name, "Divergence Resolution")
+
+                    #new code
+                    #self.sleep(1)
+                    #self.applyTargetStateToDevices(self, room, room_is_on, room_brightness, delay )
+
             else:
                 rt["auditPending"] = False
  #               room.updateStateOnServer("auditPending", False)
@@ -2817,7 +2834,7 @@ class Plugin(indigo.PluginBase):
                         # DIVEGENCE RESOLUTION BLOCK
                         rt = self.getRoomRuntime(room.id)
                         if rt["auditPending"]:
-#                        if room.states.get("auditPending", True):
+                            #this looks redundant, but devices that are already in alignment will be bypassed in this process
                             self.applyRoomStateToDevices(room)
 
  
