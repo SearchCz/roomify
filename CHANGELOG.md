@@ -1,3 +1,6 @@
+## 1.4.0 
+- Implemented converstion tracing ... monitoring device reposnses to Roomify requests to better identify instructions with external origin so that Roomify can gracefully stand by until needed again.
+
 ## 1.3.3
 - Fixed startup bug. Please update if you are on v 1.3.2
 
