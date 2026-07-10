@@ -140,42 +140,42 @@
         <CallbackMethod>roomOccupancyX</CallbackMethod>
     </Action>
 
-    <Action id="setMorningSuggested" uiPath="Consider House Mode">
+    <Action id="setMorningSuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>ConsiderHouse Mode to Morning</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="setDaySuggested" uiPath="Consider House Mode">
+    <Action id="setDaySuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Consider House Mode to Day</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="setEveningSuggested" uiPath="Consider House Mode">
+    <Action id="setEveningSuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Consider House Mode to Evening</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="setNightSuggested" uiPath="Consider House Mode">
+    <Action id="setNightSuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Consider House Mode to Night</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="setSleepSuggested" uiPath="Consider House Mode">
+    <Action id="setSleepSuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Consider House Mode to Sleep</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="setCleaningSuggested" uiPath="Consider House Mode">
+    <Action id="setCleaningSuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Consider House Mode to Cleaning</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="setAwaySuggested" uiPath="Consider House Mode">
+    <Action id="setAwaySuggested" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Consider House Mode to Away</Name>
         <CallbackMethod>considerHouseModeX</CallbackMethod>
     </Action>
 
-    <Action id="shareHouseMode">
+    <Action id="shareHouseMode" uiPath="Integration/For Other Plugins" uiVisible="False">
         <Name>Share House Mode</Name>
         <CallbackMethod>shareHouseModeX</CallbackMethod>
     </Action>
@@ -300,6 +300,24 @@
         <CallbackMethod>allVacate</CallbackMethod>
     </Action>
 
+    <Action id="reportDeviceTrace"
+            uiPath="Diagnostics">
+        <Name>Report Device Trace</Name>
+        <ConfigUI>
+            <Field id="device" type="menu">
+                <Label>Device:</Label>
+                <List class="indigo.devices"/>
+            </Field>
+        </ConfigUI>
+        <CallbackMethod>reportDeviceTrace</CallbackMethod>
+    </Action>
+
+    <Action id="reportRoomTrace"
+            uiPath="Diagnostics"
+            deviceFilter="self.roomifyRoom">
+        <Name>Report Room Trace</Name>
+        <CallbackMethod>reportRoomTrace</CallbackMethod>
+    </Action>
 
 
 </Actions>

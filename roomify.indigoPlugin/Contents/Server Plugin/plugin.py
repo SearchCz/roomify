@@ -16,6 +16,8 @@ import threading
 import time
 import datetime
 import uuid
+from collections import deque
+
 
 #latest changes:
 # - 2024.06.20 introducing allOccuoancy and allAuthority capabilities so that roomify can
@@ -387,10 +389,35 @@ class Plugin(indigo.PluginBase):
 
         state["lastUpdate"] = time.time()
         state["source"] = "Roomify"
-
         self.canonical[dev.id] = state
+        self.trace(dev.id, "intent", state)
 
-    def recordDeviceReport(self, dev, onState, brightness):
+
+    def checkForCompliance(self, devId, onState, brightness):
+        if self.checkForDivergence( devId, onState, brightness):
+            return False
+        else:
+            return True
+        
+
+    def checkForDivergence(self, devId, onState, brightness):
+        state = self.canonical.get(devId, {})
+
+        if state:
+            if ( state["onState"] != onState ):
+                return True
+
+            if brightness == None or state["brightness"] == None:
+                return False
+            
+            if brightness != state["brightness"]:
+                return True
+
+        return False
+
+
+    def recordDeviceDisrupt(self, dev, onState, brightness):
+        #LATENCY ?
         state = self.lastreport.get(dev.id, {})
 
         if onState is not None:
@@ -403,8 +430,215 @@ class Plugin(indigo.PluginBase):
         state["source"] = "Roomify"
 
         self.lastreport[dev.id] = state
+        self.trace(dev.id, "disrupt", state)
+
+    def recordDeviceReport(self, dev, onState, brightness):
+        #LATENCY ?
+        state = self.lastreport.get(dev.id, {})
+
+        if onState is not None:
+            state["onState"] = onState
+
+        if brightness is not None:
+            state["brightness"] = brightness
+
+        state["lastUpdate"] = time.time()
+        state["source"] = "--------"
+
+        self.lastreport[dev.id] = state
+        self.trace(dev.id, "report", state)
+
+    def recordDeviceReportX(self, dev, onState, brightness):
+        #LATENCY ?
+        state = self.lastnoise.get(dev.id, {})
+
+        if onState is not None:
+            state["onState"] = onState
+
+        if brightness is not None:
+            state["brightness"] = brightness
+
+        state["lastUpdate"] = time.time()
+        state["source"] = "--------"
+
+        self.lastnoise[dev.id] = state
+        self.trace(dev.id, "noise", state)
 
 
+    def recordDeviceCommand(self, dev, onState, brightness):
+        state = self.lastcommand.get(dev.id, {})
+
+        if onState is not None:
+            state["onState"] = onState
+
+        if brightness is not None:
+            state["brightness"] = brightness
+
+        state["lastCommand"] = time.time()
+        state["source"] = "Unknown"
+
+        self.lastcommand[dev.id] = state
+        self.trace(dev.id, "command", state)
+
+    # LATENCY
+    def trace(self, devId, eventType, state):
+
+        if devId not in self.traceCache:
+            self.traceCache[devId] = {
+                "trace": deque(maxlen=50),
+                "latencyTotal": 0.0,
+                "latencyCount": 0,
+                "complied": False,
+            }
+            if eventType in [ "report","noise"]:
+                dev = indigo.devices[devId]
+                self.recordDeviceDisrupt( dev, state.get("onState"), state.get("brightness"))
+                self.revokeRooms(devId)
+
+
+        cache = self.traceCache[devId]
+        trace = cache["trace"]
+
+        previous = trace[-1] if trace else None
+
+        delta = None
+        average = None
+
+        if previous is not None:
+            delta = state["lastUpdate"] - previous["time"]
+        else:
+            delta = 0
+
+        responseWindow = self.K * 3
+        # New intent starts a fresh measurement cycle
+        if cache["latencyCount"] > 1:
+            respopnseWindow = (cache["latencyTotal"] / cache["latencyCount"]) * self.K
+        else:
+            responseWindow = 15
+
+        if eventType == "intent":
+            cache["latencyTotal"] = 0.0
+            cache["latencyCount"] = 0
+            cache["complied"] = False
+
+        # Ignore disrupted reports in the average
+        elif delta is not None and eventType in ["report","noise"]:
+            cache["latencyTotal"] += delta
+            cache["latencyCount"] += 1
+
+        if cache["latencyCount"]:
+            average = cache["latencyTotal"] / cache["latencyCount"]
+
+        newConversation = False
+
+        if eventType == "intent":
+            newConversation = True
+
+        if self.checkForDivergence(devId, state.get("onState"), state.get("brightness")):
+            cache["complied"] = True
+
+        #CZEWSKI: NEW DISRUPTION LOGIC LIVES HERE
+        if cache["complied"] == True and cache["latencyCount"] > 2 and delta > respopnseWindow and eventType in ["report","noise"]:
+            newConversation = True
+            DISS = self.checkForDivergence(devId, state.get("onState"), state.get("brightness"))
+            if DISS:
+                dev = indigo.devices[devId]
+                self.recordDeviceDisrupt( dev, state.get("onState"), state.get("brightness"))
+                self.revokeRooms(devId)
+
+        #ADDING on 2026-7-10 to begin a new trace whenever any "intent" is reported
+        if eventType == "intent":
+            trace.clear()
+#            cache["latencyTotal"] = 0.0
+#            cache["latencyCount"] = 0
+ 
+        trace.append({
+            "newConversation": newConversation,
+            "uuid": state.get("uuid"),
+            "time": state["lastUpdate"],
+            "type": eventType,
+            "delta": delta,
+            "average": average,
+            "onState": state.get("onState"),
+            "brightness": state.get("brightness"),
+            "source": state.get("source"),
+        })
+
+    def reportRoomTrace(self, action, device):
+
+        devId = device
+        #self.reportTrace(devId)
+
+        room = indigo.devices[devId]
+        self.logger.info(f"*********** Reporting Conversation Trace for {room.name} ***********")
+
+        controlled_ids = room.pluginProps.get("controlledDevices") or []
+        controlled_ids = [int(x) for x in controlled_ids]
+
+        divergence_count = 0
+        
+        for dev_id in controlled_ids:
+            self.reportTrace(dev_id)
+
+
+    def reportDeviceTrace(self, action, device):
+        devId = int(action.props["device"])
+        self.reportTrace(devId)
+
+    def reportTrace(self, devId):
+        if devId == 0:
+            self.logger.warning("No device selected.")
+            return
+
+        dev = indigo.devices[devId]
+        cache = self.traceCache.get(devId)
+
+        self.logger.info("")
+        self.logger.info(f"Trace for '{dev.name}'")
+        self.logger.info("-" * 100)
+
+        if not cache:
+            self.logger.info("No trace recorded.")
+            return
+
+        trace = cache["trace"]
+
+        for event in trace:
+
+            delta = "--"
+            if event["delta"] is not None:
+                delta = f"{event['delta']:.3f}s"
+
+            average = "--"
+            if event["average"] is not None:
+                average = f"{event['average']:.3f}s"
+
+            timestamp = datetime.datetime.fromtimestamp(
+                event["time"]
+            ).strftime("%H:%M:%S.%f")[:-3]
+
+            uuid = str(event.get("uuid") or "--------")[:8]
+
+            marker = ""
+            if event.get("newConversation"):
+                marker = "************************ NEW ************************"
+                self.logger.info(marker)
+
+            if event["type"] == "intent":
+                self.logger.info("")
+
+            self.logger.info(
+                f"{timestamp}  "
+                f"{uuid:8}  "
+                f"{event['type']:10}  "
+                f"Δ={delta:>8}  "
+                f"μ={average:>8}  "
+                f"On={event['onState']!s:5}  "
+                f"Bri={event['brightness']!s:4}  "
+                f"Src={event['source']}"
+            )
+
+        
     def getDeviceConfigUiValues(self, pluginProps, typeId, devId):
 
         pluginProps["occupancyAutomationEnabled"] = str(self.pluginPrefs.get("occupancyAutomationEnabled", False)).lower()
@@ -998,6 +1232,10 @@ class Plugin(indigo.PluginBase):
     def startup(self):
         self.suspendCrosstalk = False
 
+        # K = factor that determines if new repors constitute new conversations
+        self.K = 1.5
+
+
         self.houseMode = ""
 
         #self.logger.info(indigo.dimmer.setBrightness.__doc__)
@@ -1005,7 +1243,10 @@ class Plugin(indigo.PluginBase):
         self.buildRoomTypeDefaults()
         self.recentlyControlled = {}
         self.canonical = {}
+        self.lastnoise = {}
+        self.lastcommand = {}
         self.lastreport = {}
+        self.traceCache = {}
         self.loadPluginPrefs()
 
         self.debugLog("[DEBUG]Roomify plugin starting")
@@ -1336,7 +1577,7 @@ class Plugin(indigo.PluginBase):
         self.evaluateAutomationState(action)
 
     def revokeAAU(self, device):
-        #self.logDecision(device,"Revoking automation authority for device {room.name}")
+        self.logDecision(device,"Revoking automation authority for device {room.name}")
         device.updateStateOnServer(
             "automationsAuthorized",
             False)
@@ -1640,10 +1881,13 @@ class Plugin(indigo.PluginBase):
             disrupted = True
             self.authorityLog (f"{device.name} : [{device.id}]Intended On={intendedOn} / actual={actualOn   }")
 
+        #LATENCY ?
+
         return disrupted
 
 
     def isDisrupted(self, device):
+        return False
 
         record = self.recentlyControlled.get(device.id)
 #        self.dumpDict("Recently Controlled", record)
@@ -1848,7 +2092,6 @@ class Plugin(indigo.PluginBase):
             return
 
 
-
         # FIRST FILTER - is this state report any different from the previous state report
         previous = self.lastreport.get(newDev.id, {})
 
@@ -1873,6 +2116,7 @@ class Plugin(indigo.PluginBase):
 
         if not report_changed:
 #            self.debugLog(f"Ignoring redundant report from {newDev.name} of ON={new_on_report} and brightness={new_brightness_report}")
+            self.recordDeviceReportX(newDev, newDev.onState, getattr(newDev, "brightness", None))
             return  # 🚫 pure duplicate noise, ignore completely
         
         #czewski
@@ -1954,6 +2198,10 @@ class Plugin(indigo.PluginBase):
                 changed = False
                 #changedAspect = ""
                 disrupted = self.isDisrupted(newDev)
+
+                if disrupted:
+                    self.recordDeviceDisrupt( newDev, new_on_report, new_brightness_report)
+
             # ---- Route to rooms via index ----
             affected_rooms = self.deviceRoomMap.get(newDev.id, [])
 
@@ -1972,11 +2220,12 @@ class Plugin(indigo.PluginBase):
 
                 # maybe dont assume its a disruption?
                 # TO UNDERSTAND DISRUPTION
-                if  self.isDisrupted(room):
-                    self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "DISRUPTION: Causee by " + newDev.name)
-                    room.updateStateOnServer(
-                        "automationsAuthorized",
-                        False)
+#                if  self.isDisrupted(room):
+#                    #isDisrupted always returns false though
+#                    self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "DISRUPTION: Causee by " + newDev.name)
+#                    room.updateStateOnServer(
+#                        "automationsAuthorized",
+#                       False)
 
                 #self.evaluateAutomationState(room)
 
@@ -2222,13 +2471,13 @@ class Plugin(indigo.PluginBase):
             # set a fresh watchdog timestamp.
             self.automationLog(f"Confirming watchdog cutoff for room '{room.name}'")
             self.setRoomTimeout(room)
-            if alreadyAuthorized:
-                self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, f"DISRUPTION: {cause} outside of Roomify intent")
-                if  self.globalAuthorityAutoStandbyRecovery:
-                    self.authorityLog(f"{room.name} surrendering automation authority per '{cause}'")
-                    self.revokeAAU(room)
-                else:
-                    self.authorityLog(f"{room.name} {cause} ignored as auto standby is not enabled")
+            #if alreadyAuthorized:
+            #    self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, f"DISRUPTION: {cause} outside of Roomify intent")
+            #    if  self.globalAuthorityAutoStandbyRecovery:
+            #        self.authorityLog(f"{room.name} surrendering automation authority per '{cause}'")
+            #        self.revokeAAU(room)
+            #    else:
+            #        self.authorityLog(f"{room.name} {cause} ignored as auto standby is not enabled")
         else:
             self.deviceLog(f"Clearing watchdog cutoff for room '{room.name}'")
             self.clearRoomTimeout(room)
@@ -2395,6 +2644,12 @@ class Plugin(indigo.PluginBase):
 
     def actionControlDevice(self, action, device):
         # add code to account for brightness
+
+        # LATENCY - this is the bit where we see Indigo asserting device control
+        #           which may or may not be part of a Roomidy initiated sequence
+        #           the timestamp for this belopmgs oin a special place ? t1 I think
+
+
         try:
 
             requestedState = self.resolveRequestedState(action, device)
@@ -2404,6 +2659,10 @@ class Plugin(indigo.PluginBase):
                 targetBrightness = action.actionValue 
                 if targetBrightness == 0:
                     targetBrightness= device.states.get("initialBrightness")
+
+                #for latency tracking
+                #self.recordDeviceCommand( device, True, targetBrightness)
+
                 #self.ignoreNextRoomChange(device, "ON requested", True, action.actionValue)
                 self.turnRoomOn(device, targetBrightness)
 #                device.updateStateOnServer("onOffState", True)
@@ -2420,6 +2679,7 @@ class Plugin(indigo.PluginBase):
 
             # ---- TURN OFF ----
             if requestedState == False:
+                #self.recordDeviceCommand( device, False, 0)
                 self.authorityLog(f"OFF requested: {device.name}")
                 self.turnRoomOff(device)
                 if self.globalAuthorityAutoStandbyRecovery:
@@ -2833,9 +3093,9 @@ class Plugin(indigo.PluginBase):
 
                         # DIVEGENCE RESOLUTION BLOCK
                         rt = self.getRoomRuntime(room.id)
-                        if rt["auditPending"]:
+                        #if rt["auditPending"]:
                             #this looks redundant, but devices that are already in alignment will be bypassed in this process
-                            self.applyRoomStateToDevices(room)
+                        #    self.applyRoomStateToDevices(room)
 
  
 
@@ -2953,3 +3213,13 @@ class Plugin(indigo.PluginBase):
 
         except Exception as e:
             self.errorLog(f"updateSecurityStatus failed: {e}")
+
+    def revokeRooms(self, devId):
+        dev = indigo.devices[devId]
+        affected_rooms = self.deviceRoomMap.get(devId, [])
+
+        for room_id in affected_rooms:
+            room = indigo.devices[room_id]
+            self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "DISRUPTION: Caused by " + dev.name)
+
+            self.revokeAAU(room)
