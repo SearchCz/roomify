@@ -319,5 +319,12 @@
         <CallbackMethod>reportRoomTrace</CallbackMethod>
     </Action>
 
+    <Action id="reportRoomCache"
+            uiPath="Diagnostics"
+            deviceFilter="self.roomifyRoom">
+        <Name>Report Room Cache</Name>
+        <CallbackMethod>reportRoomCache</CallbackMethod>
+    </Action>
+
 
 </Actions>
