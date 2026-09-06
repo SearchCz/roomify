@@ -18,6 +18,8 @@ That motion isn’t the only sign that someone is there. A television turning on
 
 And imagine that all of those signals aren’t simply triggering predetermined actions.
 
+![](docs/images/RoomifyCube.jpeg)
+
 **Changes in a room tell a story.**
 
 Roomify listens, providing the brains to interpret that information and make lighting decisions based on the place, the time, and the circumstances.
