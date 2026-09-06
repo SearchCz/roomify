@@ -1,6 +1,6 @@
 ## Smart Rooms. Adaptive Lighting.
 
-![](docs/images/roomifyBanner.jpeg)
+![](https://raw.githubusercontent.com/SearchCz/roomify/refs/heads/main/docs/images/roomifyBanner.jpeg)
 
 **You already know how automated lighting works.
 
