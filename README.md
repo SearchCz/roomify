@@ -18,7 +18,7 @@ That motion isn’t the only sign that someone is there. A television turning on
 
 And imagine that all of those signals aren’t simply triggering predetermined actions.
 
-![](docs/images/RoomifyCube.jpeg)
+![](docs/images/RoomifyCube.png)
 
 **Changes in a room tell a story.**
 
