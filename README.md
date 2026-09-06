@@ -18,8 +18,6 @@ That motion isn’t the only sign that someone is there. A television turning on
 
 And imagine that all of those signals aren’t simply triggering predetermined actions.
 
-![](https://raw.githubusercontent.com/SearchCz/roomify/main/docs/images/RoomifyCube.jpeg)
-
 **Changes in a room tell a story.**
 
 Roomify listens, providing the brains to interpret that information and make lighting decisions based on the place, the time, and the circumstances.
@@ -39,6 +37,9 @@ The switch and the voice command should be the exception, not the rule.
 Roomify helps make your home responsive enough that you don’t have to tell it what to do every time you walk into a room.
 
 Start with one room. See what happens.
+
+
+![](https://raw.githubusercontent.com/SearchCz/roomify/main/docs/images/RoomifyCube.jpeg)
 
 ⸻
 
