@@ -1,3 +1,9 @@
+## 1.6.0
+- Added automatic confirmation and correction of lighting changes, improving reliability when device reports are delayed or inaccurate
+
+## 1.5.0
+- Reduced unnecessary automation deferrals by improving recognition of homeowner intent -vs- device non-compliance
+
 ## 1.4.0 
 - Implemented converstion tracing ... monitoring device reposnses to Roomify requests to better identify instructions with external origin so that Roomify can gracefully stand by until needed again.
 
