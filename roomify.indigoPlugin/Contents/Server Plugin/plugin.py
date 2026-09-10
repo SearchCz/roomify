@@ -38,6 +38,12 @@ from collections import deque
 # - implement 
 class Plugin(indigo.PluginBase):
 
+    def refreshObservers(self):
+        observers = indigo.devices.iter("self.roomifyObserver")
+        for observer in observers:
+            observer.stateListOrDisplayStateIdChanged()
+
+
     def buildDeviceStartupTrace(self, devId):
         dev = indigo.devices[devId]
         on = getattr(dev, "onState", None)
@@ -63,7 +69,7 @@ class Plugin(indigo.PluginBase):
                 room.updateStateOnServer("automationsAuthorized",mode)
                 self.evaluateAutomationState(room)
             else:
-                rc["automationsAuthorized"] = false
+                rc["automationsAuthorized"] = False
                 self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "INTENTION: Suspend authoirty everywhere")
                 room.updateStateOnServer( "automationsAuthorized",False)
                 self.evaluateAutomationState(room)
@@ -87,6 +93,7 @@ class Plugin(indigo.PluginBase):
         rooms = indigo.devices.iter("self.roomifyRoom")
         for room in rooms:
             self.setOccupancy(room,mode)
+
 
     def systemAutomationX(self, action):
         mode = action.pluginTypeId  # e.g. "setNight"
@@ -637,6 +644,7 @@ class Plugin(indigo.PluginBase):
                 looksLikeNonCompliance = self.looksLikeNonCompliance(devId, state)
                 if looksLikeNonCompliance:
                     self.logger.info(f"********************************** NON-COMPLIANCE SUSPECTED ON DEVICE {devName} *****************************************")
+                    self.refreshDeviceStatus(devId)
 #                if not looksLikeNonCompliance:
 #                    DISS = self.checkForDivergence(devId, state.get("onState"), state.get("brightness"))
 #                    if DISS:
@@ -720,6 +728,9 @@ class Plugin(indigo.PluginBase):
             return True
 
         return pb == cb
+
+    def refreshRoomStatus(self, action, device):
+        self.requestRoomStatus(device.id)
 
     def reportRoomCache(self, action, device):
         self.dumpRoomCache(device.id)
@@ -962,6 +973,7 @@ class Plugin(indigo.PluginBase):
         if self.isOn(room) and self.automationsActionable(room):
             self.automationLog(f"Relighting room {room.name}")
             lightingPhase = room.states.get("lightingPhase")
+            room.updateStateOnServer("lightingPhase","inFlux")
             self.autoRoomBrightness(room, lightingPhase)
 
     def recomputePhase(self, room, phase):
@@ -1049,7 +1061,7 @@ class Plugin(indigo.PluginBase):
             self.suspendCrosstalk = False
             return
 
-        self.deviceLog(f"HouseMode change: {oldMode} → {newMode} suspend={self.suspendCrosstalk}")
+        self.automationLog(f"HouseMode change: {oldMode} → {newMode} suspend={self.suspendCrosstalk}")
         self.pluginPrefs["houseMode"] = newMode
         self.houseMode = newMode
         self.debugLog(f"NEW ROOMIFY HOUSEMODE={self.houseMode}")
@@ -1076,11 +1088,16 @@ class Plugin(indigo.PluginBase):
     def publishToAllObservers(self):
         now = time.time()
         humanTime = datetime.datetime.fromtimestamp(now).strftime("%Y-%m-%d %H:%M:%S")
+
+        if self.nextEvaluationDue is None:
+            nextTime = "N/A"
+        else:
+            nextTime = datetime.datetime.fromtimestamp(self.nextEvaluationDue).strftime("%Y-%m-%d %H:%M:%S")
         observers = indigo.devices.iter("self.roomifyObserver")
         for observer in observers:
-            self.publishToObserver(observer,humanTime)
+            self.publishToObserver(observer,humanTime,nextTime)
 
-    def publishToObserver(self, observer, now):
+    def publishToObserver(self, observer, now, nextTime):
         self.debugLog(f"Publishing houseMode {self.houseMode} to observer {observer.name}")
 
         observer.updateStatesOnServer([
@@ -1090,6 +1107,8 @@ class Plugin(indigo.PluginBase):
             {"key": "roomAutomationCalmingPeriod", "value": self.globalRoomAutomationCalmingPeriod},
             {"key": "houseModesEnabled", "value": self.globalHouseModesEnabled},
             {"key": "lastPublishTimestamp", "value": now},
+            {"key": "nextEvaluationEpoch", "value": self.nextEvaluationDue},
+            {"key": "nextEvaluationUI", "value": nextTime},
         ])
 
 
@@ -1264,7 +1283,10 @@ class Plugin(indigo.PluginBase):
 
     def autoRoomBrightness(self, room, key, default=0):
 
-        currentPhase = room.states.get("LightingPhase") 
+        currentPhase = room.states.get("lightingPhase") 
+
+        self.automationLog(f"Room {room.name} lighting phase change requested: from {currentPhase} to {key}")
+
         if key == currentPhase:
             return
 
@@ -1366,7 +1388,7 @@ class Plugin(indigo.PluginBase):
         else:
             self.directRoom(room, False, 0, delay)
             room.updateStatesOnServer([
-                {"key": "lightingPhase", "value": None},
+                {"key": "lightingPhase", "value": "off"},
                 {"key": "watchdogCutoff", "value": None},
                 {"key": "watchdogCutoffDisplay", "value": None},
             ])  
@@ -1383,8 +1405,9 @@ class Plugin(indigo.PluginBase):
 
         rc = self.roomCache[room.id]
         gated = True
-        return rc.get("automationsAuthorized", True) and rc.get("roomOccupancyAutomationActive", True) and self.globalOccupancyAutomationEnabled and rc.get("automationGateStatus")
-
+        actionable =  rc.get("automationsAuthorized", True) and rc.get("roomOccupancyAutomationActive", True) and self.globalOccupancyAutomationEnabled and rc.get("automationGateStatus")
+        self.automationLog(f"Room {room.name} automationsActionable = {actionable}")
+        return actionable
         gated = room.states.get("automationGateStatus")
         self.debugLog(f"{room.name} automation gate status is {gated}")
         if ( gated is None ) or (gated == "") or (gated == "none"):
@@ -1442,7 +1465,7 @@ class Plugin(indigo.PluginBase):
 
         oldState = rc.get(
             "occupied",
-            0)
+            False)
         rc["occupied"] = newState
         stateChange = ( newState != oldState)
 
@@ -1609,6 +1632,8 @@ class Plugin(indigo.PluginBase):
         self.buildVacancyAuthorityRoomIndex()
         self.buildGateRoomIndex()
 
+        self.refreshObservers()
+
         self.initializeHouseMode()
         self.publishToAllObservers()
         self.initialized = True
@@ -1679,6 +1704,7 @@ class Plugin(indigo.PluginBase):
         self.globalRoomDormancyCutoffEnabled = self.pluginPrefs.get("roomDormancyCutoffEnabled", False)
         self.globalRoomDormancyDefault = self.pluginPrefs.get("roomDormancyCutoffDefault", 360)
         self.globalPhasedLightingEnabled = self.pluginPrefs.get("phasedLightingEnabled", False)
+        self.globalRemediationEnabled = self.pluginPrefs.get("remediationEnabled", True)
         self.globalRoomAutomationCalmingPeriod = float(self.pluginPrefs.get("roomAutomationCalmingPeriod",5))
         self.globalHouseModesEnabled = self.pluginPrefs.get("houseModesEnabled", False)
 
@@ -2131,18 +2157,15 @@ class Plugin(indigo.PluginBase):
         if device.deviceTypeId in [ "Room", "roomifyRoom" ]:
             self.initializeRoom(device)
         
-    def deviceUpdated(self, origDev, newDev):
-
-        if origDev.pluginProps != newDev.pluginProps:
-
-            self.debugLog(
-                f"[Roomify DEBUG] config updated: {newDev.name}")
-
-            if newDev.deviceTypeId in ["Manager", "roomifyManager"]:
-                self.initializemanager(newDev)
-
-            elif newDev.deviceTypeId in ["Room","roomifyRoom"]:
-                self.initializeRoom(newDev)
+    def deviceDeleted(self, dev):
+        self.logger.info(
+           f"[Roomify DEBUG] DEVICE DELETED: {dev.id} {dev.name}"
+        )
+        if dev.id in self.roomCache:
+            self.logger.info(
+                f"[Roomify DEBUG] removing deleted room from cache: {dev.name}"
+            )
+            del self.roomCache[dev.id]
 
 
 
@@ -2469,6 +2492,19 @@ class Plugin(indigo.PluginBase):
         #    self.deviceLog(f"Prior state (onState: {getattr(origDev, 'onState', 'N/A')}, brightness: {getattr(origDev, 'brightness', 'N/A')})")
         #    self.deviceLog(f"New state (onState: {getattr(newDev, 'onState', 'N/A')}, brightness: {getattr(newDev, 'brightness', 'N/A')})")
 
+        if origDev.pluginProps != newDev.pluginProps:
+
+            self.debugLog(
+                f"[Roomify DEBUG] config updated: {newDev.name}")
+
+            if newDev.deviceTypeId in ["Manager", "roomifyManager"]:
+                self.initializemanager(newDev)
+
+            elif newDev.deviceTypeId in ["Room","roomifyRoom"]:
+                self.initializeRoom(newDev)
+
+
+
 
         is_indicator = newDev.id in self.indicatorRoomMap
         is_controlled = newDev.id in self.deviceRoomMap
@@ -2555,7 +2591,7 @@ class Plugin(indigo.PluginBase):
                 room = indigo.devices[room_id]
                 room.updateStateOnServer("brightness", publishedBrightness)
                 room.updateStateOnServer("brightnessLevel", publishedBrightness)
-                self.automationLog(f"Brightness in {room.name} changing from {oldDerivedBrightness} to {publishedBrightness}")
+                #self.automationLog(f"Brightness in {room.name} changing from {oldDerivedBrightness} to {publishedBrightness}")
 
                 #classify and cache this report into the rooomCache
                 expectedBrightness = rc["roomifyIntent1"]
@@ -2870,6 +2906,20 @@ class Plugin(indigo.PluginBase):
 
     def scheduleRoomEvaluation(self, room, evalTime, eCause, eClass):
 
+
+        priorObligation = self.nextEvaluationDue
+
+        if evalTime is not None:
+            if not isinstance(evalTime, (int, float)):
+                self.logger.error(
+                    f"scheduleNextRoomEvaluation: invalid nextEvaluationTime for "
+                    f"{room.name}: {evalTime!r} "
+                    f"({type(evalTime).__name__})"
+                )
+                evalTime = None
+            else:
+                evalTime = float(evalTime)
+
         if self.nextEvaluationDue == None:
             self.nextEvaluationDue = evalTime
 
@@ -2898,6 +2948,15 @@ class Plugin(indigo.PluginBase):
             {"key": "nextEvaluationClass", "value": eClass},
         ])
 
+        if priorObligation != self.nextEvaluationDue:
+            self.publishToAllObservers()
+
+    def deviceStartComm(self, dev):
+        # 1. Force Indigo to reread the XML definition for this device instance
+        dev.stateListOrDisplayStateIdChanged()
+
+        # 2. Push the new key to the server right away
+        # dev.updateStateOnServer(key="myNewStateKey", value="Initial Value")
 
 
     def getRoomRuntime(self, room_id):
@@ -2985,10 +3044,9 @@ class Plugin(indigo.PluginBase):
 
     def clearRoomTimeout(self,room):
          
-#        room.updateStateOnServer("lightingPhase", "")
         room.updateStateOnServer("watchdogCutoff", None)
         room.updateStateOnServer("watchdogCutoffDisplay", None)  
-        room.updateStateOnServer("lightingPhase", None)     
+        room.updateStateOnServer("lightingPhase", "off")     
 
     def setRoomTimeout(self, room):
 
@@ -3430,8 +3488,8 @@ class Plugin(indigo.PluginBase):
                     else:
                         indigo.device.turnOff(dev_id)
 
-
-#                self.sleep(0.25)
+                #DECONGESTANT - give the device a chance to report its new state before moving on to the next device
+                #self.sleep(0.1)
 
             #savethetarget
             rc["alignmentTarget"] = alignmentTarget
@@ -3876,7 +3934,7 @@ class Plugin(indigo.PluginBase):
 
                         if now >= expiry:
                             room.updateStateOnServer("minutesRemaining",None)
-                            room.updateStateOnServer("lightingPhase", None)
+                            room.updateStateOnServer("lightingPhase", "off")
                             room.updateStateOnServer("nextEvaluationTime",None)
                             rc["nextEvaluationTime"] = None
 
@@ -3997,6 +4055,29 @@ class Plugin(indigo.PluginBase):
                     device_brightness = 100
                 totalBrightness += device_brightness
 
+        net = room.states.get("nextEvaluationTime")
+
+        if net == "":
+            net = None
+
+        if net is not None:
+            if not isinstance(net, (int, float)):
+                self.logger.error(
+                    f"Invalid nextEvaluationTime for {room.name}: "
+                    f"{net!r} ({type(net).__name__})"
+                )
+                net = None
+            else:
+                net = float(net)
+
+#        self.logger.error(
+#            f"ROOM CACHE BUILD: {room.name} "
+#            f"nextEvaluationTime={net!r}, "
+#            f"typer={type(net).__name__}"
+#        )
+
+
+
         # cache the result in roomCache
         self.roomCache[room.id] = {
             "name": room.name,
@@ -4017,7 +4098,7 @@ class Plugin(indigo.PluginBase):
             "automationState": room.states.get("automationState", 0),
             "occupied": room.states.get("occupied"),
             "authorityChangeInitiator": room.states.get("authorityChangeInitiator"),
-            "nextEvaluationTime": room.states.get("nextEvaluationTime"),
+            "nextEvaluationTime": net,
             "nextEvaluationInitiator": room.states.get("nextEvaluationInitiator"),
             "nextEvaluationClass": room.states.get("nextEvaluationClass")
             }
@@ -4132,9 +4213,10 @@ class Plugin(indigo.PluginBase):
                         dr["retryCount"] = retries
                         if dr["retryCount"] > 3:
                             continue
-                        else:
+                        elif self.globalRemediationEnabled:
 
-                        #ROGUE
+                            #ROGUE DEVICE WITH REMEDIATION ENABLED
+
                             rogueDev = indigo.devices[devId]
                             self.automationLog(f"Reminding {dr['alignment']} device {rogueDev.name} of Roomfy intended brightness {intent}")
 
@@ -4222,3 +4304,41 @@ class Plugin(indigo.PluginBase):
         #NEXTEVALUATIONTIME
 
         self.scheduleRoomEvaluation(room, expiry, "Obseervation", "Turned Off")
+
+
+    def requestRoomStatus(self, roomId):
+        room = indigo.devices[roomId]
+
+        self.debugLog(
+            f"[Roomify DEBUG] requesting status for {room.name}"
+        )
+
+        for deviceId in self.roomCache[roomId]["controlled"]:
+            try:
+                device = indigo.devices[deviceId]
+
+#                self.debugLog(
+#                    f"[Roomify DEBUG] status request → "
+#                    f"{device.name} ({device.id})"
+#                )
+                before = getattr(device, "brightness", None)
+                indigo.device.statusRequest(device.id)
+                after = getattr(device, "brightness", None)
+
+                self.logger.info(f"[Roomify DEBUG] status request → {device.name} ({device.id}): before:{before} → after:{after}")
+
+            except Exception as e:
+                self.logger.error(
+                    f"[Roomify DEBUG] status request failed for "
+                    f"{deviceId}: {e}"
+                )
+
+    def refreshDeviceStatus(deviceId):
+            device = indigo.devices[deviceId]
+
+            before = getattr(device, "brightness", None)
+            indigo.device.statusRequest(device.id)
+            after = getattr(device, "brightness", None)
+
+            if before != after:
+                self.logger.info(f"[Roomify DEBUG] Stale Report Corrected → {device.name} ({device.id}): before:{before} → after:{after}")

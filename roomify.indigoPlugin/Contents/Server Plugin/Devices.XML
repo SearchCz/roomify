@@ -21,7 +21,7 @@
         <Field id="schemaVersion"
                 hidden="true"
             type="textfield"
-            defaultValue="1.0">
+            defaultValue="1.5">
             <Label>Schema Version</Label>
         </Field>
 
@@ -83,6 +83,20 @@
             <TriggerLabel>Last Publish Time</TriggerLabel>
             <ControlPageLabel>Last Publish Time</ControlPageLabel>
         </State>
+
+        <State id="nextEvaluationEpoch">
+            <ValueType>Number</ValueType>
+            <TriggerLabel>Next Evaluation Epoch</TriggerLabel>
+            <ControlPageLabel>Next Evaluation Epoch</ControlPageLabel>
+        </State>
+
+        <State id="nextEvaluationUI">
+            <ValueType>String</ValueType>
+            <TriggerLabel>Next Evaluation Epoch</TriggerLabel>
+            <ControlPageLabel>Next Evaluation Epoch</ControlPageLabel>
+        </State>
+
+
 
     </States>
 

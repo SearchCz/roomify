@@ -286,7 +286,7 @@
     </Action>
 
     <Action id="allAuthorize" uiPath="System-Wide Actions">
-        <Name>Resume Authroity Everywhere</Name>
+        <Name>Resume Authority Everywhere</Name>
         <CallbackMethod>allAuthorize</CallbackMethod>
     </Action>
 
@@ -324,6 +324,13 @@
             deviceFilter="self.roomifyRoom">
         <Name>Report Room Cache</Name>
         <CallbackMethod>reportRoomCache</CallbackMethod>
+    </Action>
+
+    <Action id="refreshRoomStatus"
+            uiPath="Diagnostics"
+            deviceFilter="self.roomifyRoom">
+        <Name>Refresh Room Status</Name>
+        <CallbackMethod>refreshRoomStatus</CallbackMethod>
     </Action>
 
 

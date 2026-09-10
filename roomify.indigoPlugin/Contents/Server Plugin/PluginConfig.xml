@@ -84,6 +84,14 @@
         <Label>Enable 3-Phase Lighting</Label>
     </Field>
 
+    <Field id="remediationEnabled"
+        type="checkbox"
+        defaultValue="true"
+        visibleBindingId="occupancyAutomationEnabled"
+        visibleBindingValue="true">
+        <Label>Automatically confirm and correct lighting changes</Label>
+    </Field>
+
     <Field id="roomAutomationCalmingPeriod"
            type="menu"
            defaultValue="5"
