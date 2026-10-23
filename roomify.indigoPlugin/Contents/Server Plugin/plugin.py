@@ -9,8 +9,13 @@ See LICENSE.md for full terms.
 Redistribution and modification must preserve this notice.
 """
 
+#Occupancy Authority ... should be handled like gates are, not contantly polled, but rather only when occupancy is detected and then only for a short period of time (e.g. 30 seconds) to extend the occupancy grace period
+
 from unittest import case
 
+from matplotlib import rc
+
+import math
 import indigo
 import threading
 import time
@@ -65,15 +70,21 @@ class Plugin(indigo.PluginBase):
             if mode:
                 rc["automationsAuthorized"] = mode
                 self.authorityLog(f"Room '{room.name}' is resuming automation authority.")
+
+                self.updateRoomStatus(room, "resuming automations")
+
                 self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), True, "INTENTION: Resume authoirty everywhere")
                 room.updateStateOnServer("automationsAuthorized",mode)
                 self.evaluateAutomationState(room)
             else:
                 rc["automationsAuthorized"] = False
                 self.recordTransferOfAuthority(room, room.states.get("automationsAuthorized"), False, "INTENTION: Suspend authoirty everywhere")
+                self.updateRoomStatus(room, "suspending automations")
                 room.updateStateOnServer( "automationsAuthorized",False)
                 self.evaluateAutomationState(room)
 
+    def reportRoomifyConfigX(self, action):
+        self.reportRoomifyConfiguration()
 
     def allStandby(self, action):
         self.authorityLog(f"Placing all rooms on standby")
@@ -735,6 +746,16 @@ class Plugin(indigo.PluginBase):
     def reportRoomCache(self, action, device):
         self.dumpRoomCache(device.id)
 
+    def toggleRoom(self, action, device):
+        if self.isOn(device):
+            self.turnRoomOff(device)
+        else:
+            self.turnRoomOn(device,100)
+
+
+    def reportRoomConfig(self, action, device):
+        self.reportRoomConfiguration(device.id)
+
     def reportRoomTrace(self, action, device):
 
         events = []
@@ -1283,7 +1304,8 @@ class Plugin(indigo.PluginBase):
 
     def autoRoomBrightness(self, room, key, default=0):
 
-        currentPhase = room.states.get("lightingPhase") 
+        currentPhase = room.states.get("lightingPhase")
+        self.updateRoomStatus(room, key + " phase" )
 
         self.automationLog(f"Room {room.name} lighting phase change requested: from {currentPhase} to {key}")
 
@@ -1334,12 +1356,6 @@ class Plugin(indigo.PluginBase):
         #self.ignoreNextRoomChange(room, "Roomify-Initiated Change", onState, targetBrightness)
 #        rc = self.roomCache[room.id]
 #        rc["brightness"] = targetBrightness
-        room.updateStatesOnServer([
-            {"key": "onState", "value": onState},
-            {"key": "onOffState", "value": onState},
-            {"key": "brightness", "value": targetBrightness},
-            {"key": "brightnessLevel", "value": targetBrightness},
-        ])
         rt = self.getRoomRuntime(room.id)
         rt["auditBurden"] = 0
         rt["auditAttemptsRemaining"] = 4
@@ -1350,6 +1366,12 @@ class Plugin(indigo.PluginBase):
 
         self.applyTargetStateToDevices(room, onState, targetBrightness, 0)
 
+        room.updateStatesOnServer([
+            {"key": "onState", "value": onState},
+            {"key": "onOffState", "value": onState},
+            {"key": "brightness", "value": targetBrightness},
+            {"key": "brightnessLevel", "value": targetBrightness},
+        ])
         if targetBrightness == 0:
             self.roomJustTurnedOff(room)
 
@@ -1377,6 +1399,7 @@ class Plugin(indigo.PluginBase):
 
     def turnOff(self, room, delay):
         self.automationLog(f"Turning OFF room: {room.name}")
+        self.updateRoomStatus(room, "turning off")
 
         #maybe off doesn't really mean off ? 
         autoOffBrightness = room.states.get("autoOffBrightness")
@@ -1387,6 +1410,8 @@ class Plugin(indigo.PluginBase):
             self.turnRoomOn(room, int(autoOffBrightness), delay)
         else:
             self.directRoom(room, False, 0, delay)
+            #DECONGESTION: 2026-6-6 - this is a hack to make sure the room is really off before we clear the watchdog cutoff.
+            #self.sleep(5.0)
             room.updateStatesOnServer([
                 {"key": "lightingPhase", "value": "off"},
                 {"key": "watchdogCutoff", "value": None},
@@ -1493,7 +1518,8 @@ class Plugin(indigo.PluginBase):
             # state reasserted
             if newState == True:
                 self.setOccupancyExpiry(room)
-                # targetBrightness = room.pluginProps.get("initialBrightness") 
+                self.updateRoomStatus(room, "occupancy signal")
+                # targetBrightness = room.pluginProps.get("initialBrightnss") 
                 if self.automationsActionable(room):
                     self.automationLog(f"Re-asserting {newState} occupancy state for {room.name}")
                     self.autoRoomBrightness(room,"initial")
@@ -1608,9 +1634,6 @@ class Plugin(indigo.PluginBase):
         self.roomRuntime = {}
 
         self.roomCache = {}
-        self.buildRoomCache()
-
-        self.buildRoomTypeDefaults()
         self.recentlyControlled = {}
         self.canonical = {}
         self.lastnoise = {}
@@ -1618,7 +1641,11 @@ class Plugin(indigo.PluginBase):
         self.lastsense = {}
         self.lastreport = {}
         self.traceCache = {}
+
         self.loadPluginPrefs()
+        self.buildRoomCache()
+
+        self.buildRoomTypeDefaults()
 
         self.debugLog("[DEBUG]Roomify plugin starting")
 
@@ -1745,6 +1772,7 @@ class Plugin(indigo.PluginBase):
     def initializeHouseMode(self):
         x = False
         if self.securifyCooperationEnabled:
+            self.sleep(3.0)
             x = self.requestHouseMode(self)
         if not x:
             self.setHouseMode(self.pluginPrefs.get("houseMode"))
@@ -2511,8 +2539,9 @@ class Plugin(indigo.PluginBase):
         is_gate = newDev.id in self.gateRoomMap
 
         is_vacancyAuthority = newDev.id in self.vacancyAuthorityRoomMap
+        is_occupancyAuthority = newDev.id in self.occupancyAuthorityRoomMap
 
-        if not ( is_indicator or is_controlled or is_gate or is_vacancyAuthority ):
+        if not ( is_indicator or is_controlled or is_gate or is_vacancyAuthority or is_occupancyAuthority):
             return
 
 
@@ -2646,11 +2675,13 @@ class Plugin(indigo.PluginBase):
                     self.authorityLog(f"aa={rc['automationsAuthorized']} intent={i} {newDev.name} brightnes={new_brightness_report} dimmable={isDimmable} alignment={alignment}")
                     #deferred room reaches Roomify intended brightness = reclaim authority
                     if rc["automationsAuthorized"] == False and ( rc["totalBrightness"] == rc["alignmentTarget"] ):
+                        self.updateRoomStatus(room, "resuming automations")
                         self.authorityLog(f"Room '{room.name}' matches Roomify expectations: resuming automation authority.")
                         self.recordTransferOfAuthority(room, rc.get("automationsAuthorized"), True, "DISRUPTION ENDED : Room entered alignment state")
                         rc["automationsAuthorized"] = True
                         authorityImpact = "Reclaimed"
                         room.updateStateOnServer("automationsAuthorized", True) 
+                        self.updateRoomStatus(room,f"realigned")
                     elif rc["automationsAuthorized"] == True and ( alignment != "intended"): 
                         #device is not in the state roomify intended
                         #we (may) need to ascertain the response window for the reporting device
@@ -2665,7 +2696,10 @@ class Plugin(indigo.PluginBase):
                         #device does not match intent, so defer the room
 
                         self.authorityLog(f"Device {newDev.name} does not match Roomify intent. Deferring room {rc["name"]}")
+
                         self.recordTransferOfAuthority(room, rc.get("automationsAuthorized"), False, f"{newDev.name} disrupted {rc["name"]}")
+                        self.updateRoomStatus(room, f"{newDev.name} disrupted")
+
                         rc["automationsAuthorized"] = False
                         authorityImpact = "Deferred"
                         room.updateStateOnServer("automationsAuthorized", False) 
@@ -2731,15 +2765,32 @@ class Plugin(indigo.PluginBase):
                 for room_id in affected_rooms:
                     self.checkGates(indigo.devices[room_id])
 
+            if is_occupancyAuthority:
+                occupancyDevice = indigo.devices[newDev.id]
+                self.automationLog(f"Occupancy authority {occupancyDevice.name} is reporting a state change, evaluating occupancy authority implications")
+
+                affected_rooms = self.occupancyAuthorityRoomMap.get(newDev.id, [])
+
+                for room_id in affected_rooms:
+                    room = indigo.devices[room_id]
+                    self.automationLog(f"Setting {room.name} sustain to {new_on_report}")
+                    rc = self.roomCache[room_id]
+                    rc["occupancyAuthorityActive"] = new_on_report
+                    phase = room.states.get("lightingPhase", "unknown") + " phase"
+                    self.updateRoomStatus(room,phase)
+                    if new_on_report:
+                        room = indigo.devices[room_id]
+                        self.sustainOccupancy(room)
+
             if is_vacancyAuthority:
                 vacancyDevice = indigo.devices[newDev.id]
                 if not self.isOn(vacancyDevice):
-                    self.debugLog(f"Vacancy authority {vacancyDevice.name} is reporting OFF state, evaluating vacancy authority implications")
+                    self.automationLog(f"Vacancy authority {vacancyDevice.name} is reporting OFF state, evaluating vacancy authority implications")
 
                     affected_rooms = self.vacancyAuthorityRoomMap.get(newDev.id, [])
 
                     for room_id in affected_rooms:
-                        self.debugLog
+                        self.automationLog
                         #set occupancy CZEWSKI
                         room = indigo.devices[room_id]
                         self.setOccupancy(room, False)
@@ -2767,6 +2818,7 @@ class Plugin(indigo.PluginBase):
                 # CZEWSKI - maybe this next state isn't runtime alterable ?
                 self.authorityLog(f"Unexpected device update detected in room {room.name} ") 
                 self.authorityLog(f"{newDev.name} (id: {newDev.id}) / Change in {changedAspect}") 
+
                 self.logDisruption(newDev)
 
 #EXPECTATION?
@@ -2802,7 +2854,23 @@ class Plugin(indigo.PluginBase):
                 for room_id in sensed_rooms:
                     room = indigo.devices[room_id]
                     self.automationLog(f"Presence indicated in {room.name}") 
+
+
                     self.setOccupancy(room, True)
+
+                    #Added 2024-10-16 to increase occupancy score when a sensor reports presence    
+                
+                    rc = self.roomCache[room_id]
+
+                    score = rc.get("occupancyScore", 0) or 0
+                    score = min(48, max(0, int(score)) + 12)
+
+                    rc["occupancyScore"] = score
+
+                    room.updateStatesOnServer([
+                        {"key": "occupancyScore", "value": score}
+                    ])
+
 
                
 
@@ -2880,11 +2948,29 @@ class Plugin(indigo.PluginBase):
                 return None
 
         obligations = {
-        "1st Transition": normalize_ts(room.states.get("delayedLightingStarttime")),
-        "Outro": normalize_ts(room.states.get("outroLightingStarttime")),
-        "Vacancy": normalize_ts(room.states.get("watchdogCutoff")),
-        "Disruption": normalize_ts(room.states.get("nextEvaluationTime"))
+            "1st Transition": normalize_ts(
+                room.states.get("delayedLightingStarttime")
+            ),
+            "Outro": normalize_ts(
+                room.states.get("outroLightingStarttime")
+            ),
+            "Vacancy": normalize_ts(
+                room.states.get("occupancyCutoff")
+            ),
+            "Dormancy": normalize_ts(
+                room.states.get("dormancyCutoff")
+            ),
+#            "Prior Commitment": normalize_ts(
+#                room.states.get("nextEvaluationTime")
+#            ),
         }
+
+#        obligations = {
+#        "1st Transition": normalize_ts(room.states.get("delayedLightingStarttime")),
+#        "Outro": normalize_ts(room.states.get("outroLightingStarttime")),
+#        "Vacancy": normalize_ts(room.states.get("watchdogCutoff")),
+#        "Disruption": normalize_ts(room.states.get("nextEvaluationTime"))
+#        }
 
 
 
@@ -2897,6 +2983,26 @@ class Plugin(indigo.PluginBase):
             key=lambda item: item[1],
             default=(None, None)
         )
+
+
+        remaining = None
+
+        if nextTime is not None:
+            remaining = max(
+                0,
+                int(((nextTime - time.time()) / 60)+.99)
+            )
+
+
+        rc["nextCommitment"] = nextName
+        rc["nextCommitmentTime"] = nextTime
+        rc["nextCommitmentMinutesRemaining"] = remaining
+
+        room.updateStatesOnServer([
+            {"key": "nextCommitment", "value": nextName or ""},
+            {"key": "nextCommitmentTime", "value": nextTime},
+            {"key": "nextCommitmentMinutesRemaining", "value": remaining},
+        ])
 
         #self.debugLog(f"Next {room.name} obligation is {nextName} at {nextTime}")
         #INVESTIGATE - what happens here when bextTime is None. Maybe it should CLEAR the obligations?
@@ -3042,11 +3148,41 @@ class Plugin(indigo.PluginBase):
         self.deviceLog(f"Initialized room: {device.name}")  
  
 
-    def clearRoomTimeout(self,room):
-         
+    def clearRoomTimeout(self, room):
+
         room.updateStateOnServer("watchdogCutoff", None)
-        room.updateStateOnServer("watchdogCutoffDisplay", None)  
-        room.updateStateOnServer("lightingPhase", "off")     
+        room.updateStateOnServer("watchdogCutoffDisplay", None)
+        room.updateStateOnServer("lightingPhase", "off")
+
+        rc = self.roomCache.get(room.id)
+        if rc is not None:
+            rc["occupancyScore"] = 0
+            rc["nextCommitment"] = ""
+            rc["nextCommitmentTime"] = None
+            rc["nextCommitmentMinutesRemaining"] = 0
+            rc["nextEvaluationTime"] = None
+            rc["nextEvaluationClass"] = None
+            rc["nextEvaluationInitiator"] = None
+
+        stateUpdates = [
+            {"key": "occupancyScore", "value": 0},
+            {"key": "nextCommitment", "value": ""},
+            {"key": "nextCommitmentTime", "value": 0},
+            {"key": "nextCommitmentMinutesRemaining", "value": 0},
+            {"key": "nextEvaluationClass", "value": ""},
+            {"key": "nextEvaluationTime", "value": 0},
+            {"key": "nextEvaluationTimeUI", "value": ""},
+            {"key": "nextEvaluationInitiator", "value": ""},
+            {"key": "statusMessage", "value": ""},
+        ]
+
+        changedStates = [
+            state for state in stateUpdates
+            if room.states.get(state["key"]) != state["value"]
+        ]
+
+        if changedStates:
+            room.updateStatesOnServer(changedStates)
 
     def setRoomTimeout(self, room):
 
@@ -3223,6 +3359,7 @@ class Plugin(indigo.PluginBase):
 
     def buildGateRoomIndex(self):
 
+
         self.gateRoomMap = {}
 
         for room in indigo.devices.iter("self.roomifyRoom"):
@@ -3244,16 +3381,34 @@ class Plugin(indigo.PluginBase):
     def buildVacancyAuthorityRoomIndex(self):
 
         self.vacancyAuthorityRoomMap = {}
-        self.debugLog("Building vacancy authority index...")
+        self.occupancyAuthorityRoomMap = {}
+
+        self.debugLog("Building vacancy & occupancy authority indicies...")
 
         for room in indigo.devices.iter("self.roomifyRoom"):
 
             dev_id = room.pluginProps.get("vacancyAuthority")
+            dev_o = room.pluginProps.get("occupancyAuthority")
 
             self.debugLog(
                 f"Checking room {room.name} for vacancy authority device... found {dev_id}"
             )
 
+            #occupancy
+            if dev_o not in ("none", "", None):
+
+                dev_o = int(dev_o)
+
+                if dev_o not in self.occupancyAuthorityRoomMap:
+                    self.occupancyAuthorityRoomMap[dev_o] = []
+
+                self.occupancyAuthorityRoomMap[dev_o].append(room.id)
+
+                self.debugLog(
+                    f"Mapping occupancy authority {dev_o} to room {room.name}"
+                )
+
+            #vacancy
             if dev_id not in ("none", "", None):
 
                 dev_id = int(dev_id)
@@ -3434,7 +3589,11 @@ class Plugin(indigo.PluginBase):
             
             for dev_id in controlled_ids:
 
-                dev = indigo.devices[dev_id]
+
+                dev = self.getDevice(dev_id, room.name)
+                if dev is None:
+                    continue
+
                 #this is where we need to record intent so we dont wrongly register a disruption
                 #v1 probably relied entirely on *ignore next room chages* thinking
                 #v2 needs to rencile the *chage* report with the outcome, which is surely
@@ -3498,26 +3657,6 @@ class Plugin(indigo.PluginBase):
 
             rt = self.getRoomRuntime(room.id)
             rt["auditBurden"] = divergence_count
-
- #           room.updateStateOnServer("auditBurden", divergence_count)
- #           room.updateStateOnServer("divergenceCount", divergence_count)
-
-            #OLD DIVERGENCE CODE - COMMENTED OUT 8/16/2026
-            #self.automationLog(f"{divergence_count} devices needed to be updated to achieve the intended state for {room.name}")
-            #if divergence_count > 0:
-            #    auditAttemptsRemaining = rt["auditAttemptsRemaining"]
-            #    if auditAttemptsRemaining > 0:
-            #        auditAttemptsRemaining -= 1
-            #        rt["auditPending"] = True
-            #        rt["auditAttemptsRemaining"] = auditAttemptsRemaining
-              
-                    #old code ... i used to let heartbeat handle this. i think i might try recursion on a 1 second delay ?
-                    #self.scheduleRoomEvaluation(room, time.time()+self.globalRoomAutomationCalmingPeriod, room.name, "Divergence Resolution")
-
-
-            #else:
-            #    rt["auditPending"] = False
- #               room.updateStateOnServer("auditPending", False)
 
 
 
@@ -3623,7 +3762,12 @@ class Plugin(indigo.PluginBase):
             if dev_id != "none":    
                 dev_id = int(dev_id)
                 self.debugLog(f"Checking gate device {dev_id} for room {room.name}")
-                if not self.isOn(indigo.devices[dev_id]):
+
+                dev = self.getDevice(dev_id, room.name)
+                if dev is None:
+                    continue
+
+                if not self.isOn(dev):
                     gated = False
                     break   
 
@@ -3638,14 +3782,23 @@ class Plugin(indigo.PluginBase):
         occupancy_authority_id = room.pluginProps.get("occupancyAuthority")
 
         if occupancy_authority_id and ( not occupancy_authority_id == "none" ):
-            occupancy_authority = indigo.devices[int(occupancy_authority_id)]
+            occupancy_authority = self.getDevice(occupancy_authority_id, room.name)
+            if occupancy_authority is None:
+                return False
+
             self.debugLog(f"Checking {occupancy_authority.name} for extension state")
             if self.isOn(occupancy_authority):
-                self.automationLog(f"Extending automation occupancy expiration for room '{room.name}' due to occupancy authority '{occupancy_authority.name}' being ON")
-                self.setOccupancy(room,True)
                 return True
             else:
                 return False
+        return False
+
+    def sustainOccupancy(self, room):
+        self.automationLog(f"Extending automation occupancy expiration for room '{room.name}'")
+        phase = room.states.get("lightingPhase")
+        self.updateRoomStatus(room,phase)
+        self.setOccupancy(room,True)    
+        return True
 
 
     def considerReauthorization(self,roomId):
@@ -3667,22 +3820,17 @@ class Plugin(indigo.PluginBase):
         on = rc.get("totalBrightness") > 0
 #        self.debugLog(f"isOn returned {on} for Room {room.name} ")
         if on:
-            #we don't assert authority in rooms that have been left on with apparent intent
-#            self.logDecision(room, f"{room.name} is *on* and not subject to reAuthorization.")
-#           but maybe we need to check onState again soon ?
-#            self.scheduleRoomEvaluation(room, time.time()+30, room.states.get("nextEvaluationInitiator"), "Disruption+")
             return
-#        else:
-#            self.debugLog(f"{room.name} with onState = {room.states.get("onState")} is considered OFF by isOn")
 
         authorityChangeInitiator = rc.get("authorityChangeInitiator")
         if authorityChangeInitiator.startswith("INTENT"):
             return
 
         #we know this room to be unauthorized, vacant and off. so lets re-authorize it
-        room = indigo.devices[roomId]
-        self.reAuthorize(room)
-        self.clearNextObligation(room)
+        room = self.getDevice(roomId, roomId)
+        if room is not None:
+            self.reAuthorize(room)
+            self.clearNextObligation(room)
 
     def clearNextObligation(self, room):
         rc = self.roomCache[room.id]
@@ -3731,10 +3879,12 @@ class Plugin(indigo.PluginBase):
 
                 now = time.time()
 
-                if self.nextEvaluationDue is not None and now >= self.nextEvaluationDue:
-                    self.doHeartbeat(now)
+#                if self.nextEvaluationDue is not None and now >= self.nextEvaluationDue:
+#                    self.doHeartbeat(now)
 
-                self.sleep(5)
+                self.doHeartbeat(now)
+
+                self.sleep(15)
 
         except self.StopThread:
             self.logger.info("Roomify heartbeat thread stopped")
@@ -3749,8 +3899,8 @@ class Plugin(indigo.PluginBase):
 #                for room in indigo.devices.iter(self.pluginId):
 
 
-        if self.nextEvaluationDue is not None and now < self.nextEvaluationDue:
-            return
+#        if self.nextEvaluationDue is not None and now < self.nextEvaluationDue:
+#            return
 
         for roomId, rc in self.roomCache.items():
 
@@ -3758,6 +3908,69 @@ class Plugin(indigo.PluginBase):
 #                        continue
             
 #                    self.considerReauthorization(roomId)
+
+            #NEW FIRST STEPS TO MANAGE OCCUPANCY SCORE AND MINUTES REMAINING
+
+            room = self.getDevice(roomId, roomId)
+            if room is None:
+                continue    
+
+            #2026-10-18 - new code to sustwain occupancy 
+            roomOccupied = rc.get("occupied", False)
+            occupancySustained = rc.get("occupancyAuthorityActive", False)
+            if roomOccupied and occupancySustained:
+                self.sustainOccupancy(room)
+                self.identifyNextRoomObligation(room)
+
+
+            saveChanges = False
+            stateUpdates = []
+
+            occupancyScore = rc.get("occupancyScore", 0) or 0
+            if occupancyScore > 0:
+                occupancyScore -= 1
+                rc["occupancyScore"] = occupancyScore
+                if room.states.get("occupancyScore", 0) != occupancyScore:
+                    stateUpdates.append({
+                        "key": "occupancyScore",
+                        "value": occupancyScore
+                    })
+                    saveChanges = True
+
+            nextCommitmentTime = rc.get("nextCommitmentTime")
+            nextCommitmentTime = (
+                float(nextCommitmentTime) if nextCommitmentTime else None
+            )
+
+
+            if nextCommitmentTime is not None:
+                minutesRemaining = max(
+                    0, int((nextCommitmentTime - now) / 60)
+                )
+            else:
+                minutesRemaining = 0
+
+
+            if rc.get("nextCommitmentMinutesRemaining") != minutesRemaining:
+                rc["nextCommitmentMinutesRemaining"] = minutesRemaining
+                if minutesRemaining == 1:
+                    if self.automationsActionable(room):
+                        phase = room.states.get("lightingPhase") or "unknown"
+                        self.updateRoomStatus(room, phase + " phase")
+
+
+            if room.states.get("nextCommitmentMinutesRemaining") != minutesRemaining:
+                stateUpdates.append({
+                    "key": "nextCommitmentMinutesRemaining",
+                    "value": minutesRemaining
+                })
+                saveChanges = True
+
+
+
+            if saveChanges:
+                room.updateStatesOnServer(stateUpdates)
+
 
             nextEval = rc.get("nextEvaluationTime")
             nextEval = float(nextEval) if nextEval else None
@@ -3780,7 +3993,6 @@ class Plugin(indigo.PluginBase):
                 self.authorityReview(roomId)
                 rc["authorityReviewPending"] = False
 
-            room = indigo.devices[roomId]
 
             self.identifyNextRoomObligation(room)
 
@@ -3859,9 +4071,9 @@ class Plugin(indigo.PluginBase):
             #    #everything an OFF or DORMANCY room needs has been handled
             #    continue
 
-#                    if self.occupancySustained(room):
-#                        self.identifyNextRoomObligation(room)
-#                        continue
+            #if self.occupancySustained(room):
+            #    self.identifyNextRoomObligation(room)
+            #    continue
 
             next_evaluation_time = rc.get("nextEvaluationTime")
             next_evaluation_time = float(next_evaluation_time) if next_evaluation_time else None
@@ -3872,6 +4084,8 @@ class Plugin(indigo.PluginBase):
             if next_evaluation_time > now:
                 continue
 
+            if occupancySustained:
+                continue
 
             try:
                 # --- Only care about your Roomify devices ---
@@ -3901,7 +4115,7 @@ class Plugin(indigo.PluginBase):
 
 
                 if transitionTime and (now >= transitionTime):
-                    if not self.occupancySustained(room):
+                    if not occupancySustained:
                         self.automationLog(f"'{room.name} phase change invoked: initial -> delayed")
                         #targetBrightness =  room.pluginProps.get("delayedBrightness", 60)
                         room.updateStateOnServer("delayedLightingStarttime", None)
@@ -3911,7 +4125,7 @@ class Plugin(indigo.PluginBase):
 
 
                 if outroTime and (now >= outroTime):
-                    if not self.occupancySustained(room):
+                    if not occupancySustained:
                         self.automationLog(f"'{room.name} phase change invoked: delayed -> outro")
                         #targetBrightness = room.pluginProps.get("outroBrightness")
                         room.updateStateOnServer("outroLightingStarttime", None)
@@ -3929,7 +4143,7 @@ class Plugin(indigo.PluginBase):
                     if expiry:
                         # an occupancyCutoff is in effect. lets see if it has expired
 
-                        remainingMinutes = int((expiry - now)/60)
+                        remainingMinutes = int(((expiry - now)/60)+.99)
                         room.updateStateOnServer("minutesRemaining",remainingMinutes)
 
                         if now >= expiry:
@@ -4037,15 +4251,60 @@ class Plugin(indigo.PluginBase):
 
         for room in indigo.devices.iter("self.roomifyRoom"):
 
+            self.migrateRoomSchema(room)
             self.cacheRoom(room)
 
+    def migrateRoomSchema(self, room):
+
+        props = room.pluginProps
+        schemaVersion = props.get("schemaVersion", "1.0")
+
+        try:
+            version = tuple(int(part) for part in schemaVersion.split("."))
+        except (ValueError, AttributeError):
+            version = (1, 0)
+
+        requiredStates = {
+            "nextCommitment": "",
+            "nextCommitmentTime": 0,
+            "nextCommitmentMinutesRemaining": 0,
+            "occupancyScore": 0,
+            "statusMessage": "",
+        }
+
+        missingStates = [
+            key for key in requiredStates
+            if key not in room.states
+        ]
+
+        if version < (1, 3) or missingStates:
+
+            room.stateListOrDisplayStateIdChanged()
+
+            room.updateStatesOnServer([
+                {"key": key, "value": value}
+                for key, value in requiredStates.items()
+            ])
+
+            props["schemaVersion"] = "1.3"
+            room.replacePluginPropsOnServer(props)
+
+
     def cacheRoom(self,room):
+
+        isSustained = self.occupancySustained(room)
         controlled = room.pluginProps.get("controlledDevices") or []
         controlled = [int(x) for x in controlled]
         totalBrightness = 0
         now = time.time()
 
+ 
+ 
         for dev_id in controlled:
+
+            if dev_id not in indigo.devices:
+                self.logger.error(f"Controlled device {dev_id} not found for room {room.name}")
+                continue
 
             device = indigo.devices[dev_id]
             if self.isOn(device):
@@ -4100,18 +4359,66 @@ class Plugin(indigo.PluginBase):
             "authorityChangeInitiator": room.states.get("authorityChangeInitiator"),
             "nextEvaluationTime": net,
             "nextEvaluationInitiator": room.states.get("nextEvaluationInitiator"),
-            "nextEvaluationClass": room.states.get("nextEvaluationClass")
-            }
+            "nextEvaluationClass": room.states.get("nextEvaluationClass"),
+            "nextCommitment": room.states.get("nextCommitment", ""),
+            "nextCommitmentTime": room.states.get("nextCommitmentTime", 0),
+            "nextCommitmentMinutesRemaining": room.states.get(
+                "nextCommitmentMinutesRemaining", 0
+            ),
+            "occupancyScore": room.states.get("occupancyScore", 0),    
+            "occupancyAuthorityActive": isSustained }
 
 #        self.logger.info(f"Cached roomify room {room.name}")
 
-        derivedBrightness = int(round(totalBrightness / len(controlled) ))
+        derivedBrightness = None
+
+        if len(controlled) > 0:
+            derivedBrightness = int(round(totalBrightness / len(controlled) ))
+
         room.updateStatesOnServer([
             {"key": "brightness", "value": derivedBrightness},
             {"key": "brightnessLevel", "value": derivedBrightness},
         ])
 
     def dumpRoomCache(self, roomId):
+
+        rc = self.roomCache.get(roomId)
+
+        if rc is None:
+            self.logger.info(f"Room cache not found for room id {roomId}")
+            return
+
+        self.logger.info(f"========== ROOM CACHE: {rc.get('name', roomId)} ==========")
+
+        for key in sorted(rc.keys()):
+
+            if key == "controlled":
+                self.logger.info("========== CONTROLLED DEVICES ==========")
+
+                for dev_id in rc[key]:
+                    dev = self.getDevice(dev_id, rc.get("name"))
+
+                    if dev is None:
+                        self.logger.info(f"  Device ID: {dev_id} | DEVICE NOT FOUND")
+                        continue
+
+                    brightness = dev.states.get("brightnessLevel", "N/A")
+
+                    self.logger.info(
+                        f"  Device ID: {dev.id} | "
+                        f"Name: {dev.name} | "
+                        f"Brightness: {brightness}"
+                    )
+
+                self.logger.info("=" * 60)
+
+            else:
+                self.logger.info(f"{key:32} : {rc[key]}")
+
+        self.logger.info("=" * 60)
+
+
+    def dumpRoomCacheDeprecated(self, roomId):
 
         rc = self.roomCache.get(roomId)
 
@@ -4234,27 +4541,38 @@ class Plugin(indigo.PluginBase):
                 if  self.globalAuthorityAutoStandbyRecovery:
                     self.authorityLog(f"Room '{room.name}' is minority non-compliant. Resuming automation authority.")
                     self.recordTransferOfAuthority(room, rc.get("automationsAuthorized"), True, "DEFERRAL ENDED: majority compliant with no novel devices")
+                    self.updateRoomStatus(room, f"resuming automations")
                     rc["automationsAuthorized"] = True
                     room.updateStateOnServer("automationsAuthorized", True) 
 
     def roomJustTurnedOff(self, room):
+
+        self.updateRoomStatus(room, "")
         #reanimate it
+        rc = self.roomCache[room.id]
+
         self.clearOccupancyExpiry(room)
         self.clearNextObligation(room)
         expiry = time.time() + (120)
         displayTime = datetime.datetime.fromtimestamp(
-            expiry).strftime("%I:%M:%S %p")
+            expiry).strftime("%I:%M:%S %p") 
 
-        room.updateStatesOnServer([
-            {"key": "occupancyCutoff", "value": expiry},
-            {"key": "occupancyCutoffUI", "value": displayTime},
-            {"key": "delayedLightingStarttime", "value": None},
-            {"key": "outroLightingStarttime", "value": None},
-            {"key": "delayedLightingStarttimeUI", "value": None},
-            {"key": "outroLightingStarttimeUI", "value": None},
-        ])
+        occupied = rc.get("occupied", False)
 
-        rc = self.roomCache[room.id]
+        if occupied:
+            room.updateStatesOnServer([
+                {"key": "occupancyCutoff", "value": expiry},
+                {"key": "occupancyCutoffUI", "value": displayTime},
+                {"key": "delayedLightingStarttime", "value": None},
+                {"key": "outroLightingStarttime", "value": None},
+                {"key": "delayedLightingStarttimeUI", "value": None},
+                {"key": "outroLightingStarttimeUI", "value": None},
+            ])
+        else:
+            self.clearOccupancyExpiry(room)
+            self.clearNextObligation(room)
+            self.clearRoomTimeout(room)
+
 
         if not rc.get("automationsAuthorized", False):
             #SCHEDULE a re-evaluation of the room in 10 seconds
@@ -4342,3 +4660,332 @@ class Plugin(indigo.PluginBase):
 
             if before != after:
                 self.logger.info(f"[Roomify DEBUG] Stale Report Corrected → {device.name} ({device.id}): before:{before} → after:{after}")
+
+
+
+    def getDevice(self, dev_id, room=None):
+        """
+        Return the Indigo device if it exists; otherwise,
+        log a warning and return None.
+        """
+        try:
+            dev_id = int(dev_id)
+            return indigo.devices[dev_id]
+        except (ValueError, TypeError):
+            pass
+        except KeyError:
+            pass
+
+        message = f"Roomify: Device ID {dev_id} does not exist"
+        if room is not None:
+            message += f" (room: {room})"
+        self.logger.warning(message)
+        return None
+
+
+    def getDeviceDeprecated(self, dev_id, room=None):
+        """
+        Return the Indigo device if it exists; otherwise,
+        log a warning and return None.
+
+        room may be a room name, room ID, or None.
+        """
+        try:
+            return indigo.devices[dev_id]
+        except KeyError:
+            message = (
+                f"Roomify: Device ID {dev_id} does not exist"
+            )
+
+            if room is not None:
+                message += f" (room: {room})"
+
+            self.logger.warning(message)
+            return None
+
+
+
+    def reportRoomifyConfiguration(self):
+
+        self.logger.info("")
+        self.logger.info("=" * 72)
+        self.logger.info("ROOMIFY CONFIGURATION AND OPERATIONAL STATE REPORT")
+        self.logger.info("=" * 72)
+        self.logger.info("")
+
+        roomIds = sorted(
+            self.roomCache.keys(),
+            key=lambda roomId: self.roomCache[roomId].get(
+                "name", str(roomId)
+            ).lower()
+        )
+
+        for roomId in roomIds:
+            self.reportRoomConfiguration(roomId)
+
+        self.logger.info("")
+        self.logger.info("=" * 72)
+        self.logger.info(f"Rooms reported: {len(roomIds)}")
+        self.logger.info("=" * 72)
+
+
+    def reportRoomConfiguration(self, roomId):
+
+        rc = self.roomCache.get(roomId)
+
+        if rc is None:
+            self.logger.warning(
+                f"Room cache not found for room ID {roomId}"
+            )
+            return
+
+        room = self.getDevice(roomId, rc.get("name"))
+
+        if room is None:
+            self.logger.warning(
+                f"Cannot report configuration for room ID {roomId}"
+            )
+            return
+
+        props = room.pluginProps
+        states = room.states
+
+        # ---------------------------------------------------------
+        # ROOM HEADER
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("#" * 80)
+        self.logger.info(" ")
+        self.logger.info(f"ROOM: {room.name} [{roomId}] SUMMARY")
+
+        # ---------------------------------------------------------
+        # ROOM SUMMARY
+        # High-level, human-readable information
+        # ---------------------------------------------------------
+
+        summaryFields = [
+            ("Automation state", "automationStateUI"),
+            ("Status / explanation", "statusMessage"),
+            ("Automated lighting", "lightingPhase"),
+            ("Occupied", "occupied"),
+            ("Next commitment", "nextCommitment"),
+            ("Minutes remaining", "nextCommitmentMinutesRemaining"),
+            ("Occupancy score", "occupancyScore"),
+        ]
+
+        for label, stateId in summaryFields:
+            value = states.get(stateId, "N/A")
+
+            if value is None or value == "":
+                value = "N/A"
+
+            self.logger.info(f"    {label + ':':<29} {value}")
+
+        # ---------------------------------------------------------
+        # CONFIGURATION
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  CONFIGURATION")
+        self.logger.info("  " + "- " * 24)
+
+        configFields = [
+            ("Type", props.get("roomType", "N/A")),
+            (
+                "Occupancy automation",
+                props.get("roomOccupancyAutomationActive", False)
+            ),
+            (
+                "Occupancy enabled",
+                props.get("occupancyAutomationEnabled", False)
+            ),
+            (
+                "Phased lighting",
+                props.get("phasedLightingEnabled", False)
+            ),
+            (
+                "Dormancy cutoff enabled",
+                props.get("roomDormancyCutoffEnabled", False)
+            ),
+            (
+                "Dormancy cutoff active",
+                props.get("roomDormancyCutoffActive", False)
+            ),
+        ]
+
+        for label, value in configFields:
+            self.logger.info(f"    {label + ':':<29} {value}")
+
+        # ---------------------------------------------------------
+        # RUNTIME STATE
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  RUNTIME STATE")
+        self.logger.info("  " + "- " * 24)
+
+        runtimeFields = [
+            ("Occupied", rc.get("occupied", "N/A")),
+            (
+                "Automations authorized",
+                rc.get("automationsAuthorized", "N/A")
+            ),
+            (
+                "Gate status",
+                rc.get("automationGateStatus", "N/A")
+            ),
+        ]
+
+        for label, value in runtimeFields:
+            self.logger.info(f"    {label + ':':<29} {value}")
+
+        # ---------------------------------------------------------
+        # OCCUPANCY AUTHORITY
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  OCCUPANCY AUTHORITY")
+        self.logger.info("  " + "- " * 24)
+
+        authorityId = props.get("occupancyAuthority")
+
+        if authorityId:
+            self.logger.info(
+                f"    {self.reportDeviceState(authorityId, room.name)}"
+            )
+        else:
+            self.logger.info("    (none)")
+
+        # ---------------------------------------------------------
+        # VACANCY AUTHORITY
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  VACANCY AUTHORITY")
+        self.logger.info("  " + "- " * 24)
+
+        authorityId = props.get("vacancyAuthority")
+
+        if authorityId:
+            self.logger.info(
+                f"    {self.reportDeviceState(authorityId, room.name)}"
+            )
+        else:
+            self.logger.info("    (none)")
+
+        # ---------------------------------------------------------
+        # AUTOMATION GATES
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  AUTOMATION GATES")
+        self.logger.info("  " + "- " * 24)
+
+        gates = props.get("automationGates", [])
+
+        if not gates:
+            self.logger.info("    (none)")
+        else:
+            for dev_id in gates:
+                self.logger.info(
+                    f"    {self.reportDeviceState(dev_id, room.name)}"
+                )
+
+        # ---------------------------------------------------------
+        # OCCUPANCY INDICATORS
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  OCCUPANCY INDICATORS")
+        self.logger.info("  " + "- " * 24)
+
+        indicators = props.get("occupancyIndicators", [])
+
+        if not indicators:
+            self.logger.info("    (none)")
+        else:
+            for dev_id in indicators:
+                dev = self.getDevice(dev_id, room.name)
+
+                if dev is None:
+                    self.logger.info(
+                        f"    [{dev_id}] DEVICE NOT FOUND"
+                    )
+                else:
+                    self.logger.info(
+                        f"    [{dev.id}] {dev.name}"
+                    )
+
+        # ---------------------------------------------------------
+        # CONTROLLED DEVICES
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("  CONTROLLED DEVICES")
+        self.logger.info("  " + "- " * 24)
+
+        controlled = props.get("controlledDevices", [])
+
+        if not controlled:
+            self.logger.info("    (none)")
+        else:
+            for dev_id in controlled:
+                dev = self.getDevice(dev_id, room.name)
+
+                if dev is None:
+                    self.logger.info(
+                        f"    [{dev_id}] DEVICE NOT FOUND"
+                    )
+                    continue
+
+                brightness = dev.states.get(
+                    "brightnessLevel", "N/A"
+                )
+
+                self.logger.info(
+                    f"    [{dev.id}] {dev.name}"
+                    f" | Brightness: {brightness}"
+                )
+
+        # ---------------------------------------------------------
+        # END OF ROOM
+        # ---------------------------------------------------------
+
+        self.logger.info("")
+        self.logger.info("-" * 72)
+
+
+    def reportDeviceState(self, dev_id, roomName):
+
+        if dev_id == "none":
+            return f"[{dev_id}] (none configured)"
+
+        dev = self.getDevice(dev_id, roomName)
+
+        if dev is None:
+            return f"[{dev_id}] DEVICE NOT FOUND"
+
+        state = "ON" if self.isOn(dev) else "OFF"
+
+        return f"[{dev.id}] {dev.name} — {state}"
+
+    def updateRoomStatus(self, room, statusMesage):
+        pre = ""
+        post = ""
+
+        rc = self.roomCache.get(room.id)
+
+        if rc:
+            automationState = rc.get("automationState")
+            occupied = rc.get("occupied")
+            if automationState == 1 and occupied:
+                if rc.get("occupancyAuthorityActive"):
+                    post = " 𝄐"
+
+                minutes_remaining = rc.get("nextCommitmentMinutesRemaining")
+
+                if minutes_remaining is not None and minutes_remaining <= 1:
+                    post += " ⏱"
+        self.logger.info(f"Updating room status for {room.name}: {pre}{statusMesage}{post}")            
+        room.updateStateOnServer("statusMessage", f"{pre}{statusMesage}{post}")

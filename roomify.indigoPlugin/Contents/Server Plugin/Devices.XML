@@ -126,7 +126,7 @@
             <Field id="schemaVersion"
                 type="textfield"
                 hidden="true"
-                defaultValue="1.0">
+                defaultValue="1.4">
                 <Label>Schema Version</Label>
             </Field>
 
@@ -697,6 +697,35 @@
                 <ControlPageLabel>Alert Classification (UI)</ControlPageLabel>
             </State>
 
+            <State id="nextCommitment">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Next Commitment</TriggerLabel>
+                <ControlPageLabel>Next Commitment</ControlPageLabel>
+            </State>
+
+            <State id="nextCommitmentTime">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Next Commitment Time</TriggerLabel>
+                <ControlPageLabel>Next Commitment Time</ControlPageLabel>
+            </State>
+
+            <State id="nextCommitmentMinutesRemaining">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Minutes Until Commitment</TriggerLabel>
+                <ControlPageLabel>Minutes Until Commitment</ControlPageLabel>
+            </State>
+
+            <State id="occupancyScore">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Occupancy Score</TriggerLabel>
+                <ControlPageLabel>Occupancy Score</ControlPageLabel>
+            </State>
+
+            <State id="statusMessage">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status Message</TriggerLabel>
+                <ControlPageLabel>Status Message</ControlPageLabel>
+            </State>
 
         </States>
 

@@ -300,6 +300,11 @@
         <CallbackMethod>allVacate</CallbackMethod>
     </Action>
 
+    <Action id="reportRoomifyConfigX" uiPath="Diagnostics">
+        <Name>Report Roomify Configuration</Name>
+        <CallbackMethod>reportRoomifyConfigX</CallbackMethod>
+    </Action>
+
     <Action id="reportDeviceTrace"
             uiPath="Diagnostics">
         <Name>Report Device Trace</Name>
@@ -324,6 +329,21 @@
             deviceFilter="self.roomifyRoom">
         <Name>Report Room Cache</Name>
         <CallbackMethod>reportRoomCache</CallbackMethod>
+    </Action>
+
+    <Action id="toggleRoom"
+            uiPath="Diagnostics"
+            deviceFilter="self.roomifyRoom">
+        <Name>Toggle Room</Name>
+        <CallbackMethod>toggleRoom</CallbackMethod>
+    </Action>
+
+
+    <Action id="reportRoomConfig"
+            uiPath="Diagnostics"
+            deviceFilter="self.roomifyRoom">
+        <Name>Report Room Configuration</Name>
+        <CallbackMethod>reportRoomConfig</CallbackMethod>
     </Action>
 
     <Action id="refreshRoomStatus"
