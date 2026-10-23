@@ -1,3 +1,6 @@
+## 1.7.0
+- Implemented device status and log file reporting options so that Roomify states, actions and intents are more transparent. 
+
 ## 1.6.0
 - Added automatic confirmation and correction of lighting changes, improving reliability when device reports are delayed or inaccurate
 
