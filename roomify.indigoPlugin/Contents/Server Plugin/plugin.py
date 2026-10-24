@@ -4651,7 +4651,7 @@ class Plugin(indigo.PluginBase):
                     f"{deviceId}: {e}"
                 )
 
-    def refreshDeviceStatus(deviceId):
+    def refreshDeviceStatus(self,deviceId):
             device = indigo.devices[deviceId]
 
             before = getattr(device, "brightness", None)
