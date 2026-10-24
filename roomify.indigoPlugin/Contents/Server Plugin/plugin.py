@@ -4987,5 +4987,5 @@ class Plugin(indigo.PluginBase):
 
                 if minutes_remaining is not None and minutes_remaining <= 1:
                     post += " ⏱"
-        self.logger.info(f"Updating room status for {room.name}: {pre}{statusMesage}{post}")            
+        self.automationLog(f"Updating room status for {room.name}: {pre}{statusMesage}{post}")            
         room.updateStateOnServer("statusMessage", f"{pre}{statusMesage}{post}")
